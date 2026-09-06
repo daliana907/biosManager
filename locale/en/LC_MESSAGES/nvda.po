@@ -1,0 +1,181 @@
+# English translations for biosManager.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: biosManager 1.0\n"
+"POT-Creation-Date: 2026-09-05 12:00+0000\n"
+"PO-Revision-Date: 2026-09-05 12:00+0000\n"
+"Last-Translator: Daliana\n"
+"Language-Team: English\n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "&Aceptar y Guardar en BIOS"
+msgstr "&Accept and Save to BIOS"
+
+msgid "&Añadir a cambios pendientes"
+msgstr "&Add to pending changes"
+
+msgid "&Buscar ajuste:"
+msgstr "&Search setting:"
+
+msgid "&Cerrar sin guardar"
+msgstr "&Close without saving"
+
+msgid "&Configuración de la BIOS / UEFI..."
+msgstr "&BIOS / UEFI Configuration..."
+
+msgid "Abre la ventana accesible para consultar y configurar la BIOS/UEFI"
+msgstr "Opens the accessible window to query and configure BIOS/UEFI"
+
+msgid "Abre la ventana de configuración accesible de la BIOS/UEFI."
+msgstr "Opens the accessible BIOS/UEFI configuration window."
+
+msgid "Ajuste"
+msgstr "Setting"
+
+msgid "Ajuste:"
+msgstr "Setting:"
+
+msgid "Ajustes de la BIOS / UEFI:"
+msgstr "BIOS / UEFI Settings:"
+
+msgid "Atención: Se requerirán privilegios de Administrador para aplicar los cambios.\\n¿Continuar?"
+msgstr "Warning: Administrator privileges will be required to apply changes.\\nContinue?"
+
+msgid "BIOS / UEFI Manager"
+msgstr "BIOS / UEFI Manager"
+
+msgid "BIOS Manager"
+msgstr "BIOS Manager"
+
+msgid "Cambio Pendiente"
+msgstr "Pending Change"
+
+msgid "Cambio pendiente:"
+msgstr "Pending change:"
+
+msgid "Cambios guardados correctamente.\\n\\nOutput:\\n"
+msgstr "Changes saved successfully.\\n\\nOutput:\\n"
+
+msgid "Cargando editor para"
+msgstr "Loading editor for"
+
+msgid "Cargando opciones de BIOS, por favor espera unos segundos..."
+msgstr "Loading BIOS options, please wait a few seconds..."
+
+msgid "Complemento para NVDA que permite consultar, buscar y modificar los parametros de la BIOS y UEFI directamente desde Windows sin reiniciar la PC a ciegas."
+msgstr "NVDA add-on that allows querying, searching, and modifying BIOS and UEFI parameters directly from Windows without restarting the PC blindly."
+
+msgid "Configuración de la BIOS"
+msgstr "BIOS Configuration"
+
+msgid "Dispositivo de arranque"
+msgstr "Boot device"
+
+msgid "Elige el nuevo valor:"
+msgstr "Choose the new value:"
+
+msgid "Error"
+msgstr "Error"
+
+msgid "Error al abrir la ventana de BIOS:"
+msgstr "Error opening BIOS window:"
+
+msgid "Error al guardar:\\n"
+msgstr "Error saving:\\n"
+
+msgid "Excepción al guardar:"
+msgstr "Exception saving:"
+
+msgid "Fecha (Año, Mes, Día):"
+msgstr "Date (Year, Month, Day):"
+
+msgid "Gestor de BIOS y UEFI Accesible"
+msgstr "Accessible BIOS and UEFI Manager"
+
+msgid "Guardar Cambios"
+msgstr "Save Changes"
+
+msgid "Hora (Hora, Minuto, Segundo):"
+msgstr "Time (Hour, Minute, Second):"
+
+msgid "No hay cambios pendientes para guardar."
+msgstr "There are no pending changes to save."
+
+msgid "Texto libre:"
+msgstr "Free text:"
+
+msgid "Valor"
+msgstr "Value"
+
+msgid "Valor actual en sistema:"
+msgstr "Current system value:"
+
+msgid "Valor numérico:"
+msgstr "Numeric value:"
+
+msgid "Éxito"
+msgstr "Success"
+
+msgid "&Gestor de BIOS y UEFI"
+msgstr "&BIOS and UEFI Manager"
+
+msgid "Opciones y configuración accesible de la BIOS/UEFI"
+msgstr "Accessible BIOS/UEFI options and configuration"
+
+msgid "&Comprobar conflictos con otros complementos..."
+msgstr "&Check conflicts with other add-ons..."
+
+msgid "Comprueba si existen conflictos de atajos de teclado o complementos incompatibles con el Gestor de BIOS"
+msgstr "Checks for shortcut conflicts or incompatible add-ons with BIOS Manager"
+
+msgid "&Documentación"
+msgstr "&Documentation"
+
+msgid "Abre la ayuda y documentación del Gestor de BIOS"
+msgstr "Opens BIOS Manager help and documentation"
+
+msgid "Gestor de BIOS: No se detectaron conflictos con otros complementos."
+msgstr "BIOS Manager: No conflicts detected with other add-ons."
+
+msgid "Gestor de BIOS: Se detectaron {count} posibles conflictos o advertencias. Revise el registro de NVDA para más detalles."
+msgstr "BIOS Manager: Detected {count} possible conflicts or warnings. Please review the NVDA log for details."
+
+msgid "Gestor de BIOS y UEFI"
+msgstr "BIOS and UEFI Manager"
+
+msgid "Reinicia el equipo directamente en la pantalla de configuración del firmware UEFI."
+msgstr "Restarts the computer directly into the UEFI firmware configuration screen."
+
+msgid "¿Seguro que deseas reiniciar el equipo ahora mismo para acceder a la BIOS / UEFI?"
+msgstr "Are you sure you want to restart the computer right now to enter the BIOS / UEFI?"
+
+msgid "Reiniciar a UEFI - Gestor de BIOS"
+msgstr "Restart to UEFI - BIOS Manager"
+
+msgid "Apertura de la ventana del Gestor de BIOS / UEFI"
+msgstr "Opening the BIOS / UEFI Manager window"
+
+msgid "No se encontró el archivo de documentación de BIOS Manager."
+msgstr "BIOS Manager documentation file was not found."
+
+msgid "No se han detectado conflictos de atajos de teclado ni complementos incompatibles activos con el Gestor de BIOS."
+msgstr "No keyboard shortcut conflicts or active incompatible add-ons detected with BIOS Manager."
+
+msgid "Auditoría de compatibilidad - Gestor de BIOS"
+msgstr "Compatibility Audit - BIOS Manager"
+
+msgid "COLISIONES DIRECTAS DE ATAJOS:"
+msgstr "DIRECT SHORTCUT COLLISIONS:"
+
+msgid "ADVERTENCIAS DE COMPATIBILIDAD:"
+msgstr "COMPATIBILITY WARNINGS:"
+
+msgid "Nota: Los detalles completos también se han registrado en el archivo de log de NVDA."
+msgstr "Note: Full details have also been logged to the NVDA log file."
+
+msgid "Comprueba si existen conflictos de atajos de teclado o complementos incompatibles con el Gestor de BIOS."
+msgstr "Checks for keyboard shortcut conflicts or add-ons incompatible with BIOS Manager."
