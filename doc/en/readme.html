@@ -2,64 +2,45 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>BIOS / UEFI Manager for NVDA - Documentation</title>
+<title>BIOS / UEFI Manager for NVDA</title>
 <style>
-  body { font-family: Arial, sans-serif; max-width: 860px; margin: 0 auto; padding: 20px; color: #222; }
-  h1 { color: #1a5276; border-bottom: 2px solid #1a5276; padding-bottom: 8px; }
-  h2 { color: #1f618d; margin-top: 32px; }
-  h3 { color: #2874a6; }
-  table { border-collapse: collapse; width: 100%; margin: 12px 0; }
-  th { background: #1a5276; color: white; padding: 8px 12px; text-align: left; }
-  td { border: 1px solid #aed6f1; padding: 7px 12px; }
-  tr:nth-child(even) td { background: #eaf4fb; }
-  code { background: #eaf4fb; padding: 2px 6px; border-radius: 3px; font-size: 0.97em; }
-  .aviso { background: #fef9e7; border-left: 4px solid #f4d03f; padding: 10px 14px; margin: 16px 0; }
-  ul li { margin: 5px 0; }
+  body { font-family: sans-serif; max-width: 800px; margin: 20px auto; line-height: 1.5; color: #222; }
+  h1, h2, h3 { color: #1a5276; }
+  ul { padding-left: 20px; }
+  li { margin-bottom: 6px; }
+  .nota { background: #eaf2f8; border-left: 4px solid #2980b9; padding: 10px; margin: 15px 0; }
 </style>
 </head>
 <body>
-
 <h1>BIOS / UEFI Manager for NVDA</h1>
-<p><strong>Author:</strong> Daliana &nbsp;|&nbsp; <strong>Version:</strong> 1.5 &nbsp;|&nbsp; <strong>Compatibility:</strong> NVDA 2023.1 or later</p>
+<p>Author: Daliana | Version 1.5 | Compatibility: NVDA 2023.1 or later</p>
 
-<p>An advanced accessibility add-on for the NVDA screen reader that enables users to inspect, search, and configure BIOS and UEFI firmware settings directly from Windows.</p>
+<p>This add-on allows blind and visually impaired users to view and modify BIOS/UEFI firmware settings directly from Windows using NVDA.</p>
 
-<hr>
-
-<h2>The Problem It Solves</h2>
-<p>Traditional BIOS/UEFI setup interfaces run before the operating system boots and are purely visual, rendering them inaccessible to blind and visually impaired users. This add-on brings firmware configuration into the accessible Windows desktop environment, allowing full speech and braille interaction.</p>
-
-<h2>Hardware Compatibility</h2>
+<h2>Supported Computers</h2>
 <ul>
-  <li><strong>Supported:</strong> <strong>Lenovo</strong> enterprise and business computers (<strong>ThinkPad</strong> laptops, <strong>ThinkCentre</strong> desktops, <strong>ThinkStation</strong> workstations).</li>
-  <li><strong>Architecture:</strong> Modular design allowing future translation drivers for other enterprise vendors (Dell, HP).</li>
-  <li><strong>Unsupported:</strong> Generic custom-built PCs and budget consumer laptops without vendor WMI firmware support.</li>
+  <li>Lenovo business systems: ThinkPad laptops, ThinkCentre desktops, and ThinkStation workstations.</li>
+  <li>On custom-built PCs or machines without vendor WMI support, the add-on will safely report that no supported interface was found.</li>
 </ul>
 
-<h2>Safety and Security</h2>
-<div class="aviso">
-  <strong>Completely Safe:</strong> Configuration is communicated through official vendor WMI providers (<code>root\wmi</code>). Any invalid values are validated and rejected by the motherboard firmware, making it impossible to corrupt firmware via this method.
+<h2>How to use</h2>
+<ol>
+  <li>Press NVDA + N, go to Tools > BIOS and UEFI Manager > BIOS / UEFI Settings (or press NVDA + Shift + B directly).</li>
+  <li>Wait a few seconds for settings to load. Browse the list on the left or use the search box.</li>
+  <li>On the right side, adjust the setting with arrow keys or type as needed.</li>
+  <li>Click Add to pending changes.</li>
+  <li>When done, click OK and accept the Windows UAC confirmation. Changes will apply on next restart.</li>
+</ol>
+
+<div class="nota">
+  <strong>Safety:</strong> Communicates via official Lenovo WMI interfaces. Motherboard firmware verifies every setting and rejects invalid entries, keeping your machine safe.
 </div>
-<ul>
-  <li><strong>NVRAM Persistence:</strong> Settings survive operating system reinstallations and drive formatting.</li>
-  <li><strong>Controlled Elevation:</strong> Windows User Account Control (UAC) is requested only when applying confirmed changes.</li>
-</ul>
 
-<h2>Menu in NVDA Tools</h2>
-<p>Access all options via <strong>NVDA Menu &gt; Tools &gt; BIOS and UEFI Manager</strong>:</p>
+<h2>Tools Menu Options</h2>
 <ul>
-  <li><strong>BIOS / UEFI Settings...:</strong> Opens the accessible management dialog.</li>
-  <li><strong>Check conflicts with other add-ons...:</strong> Audits shortcut collisions and duplicate tools.</li>
-  <li><strong>Documentation:</strong> Opens this user guide.</li>
-</ul>
-
-<h2>Changelog</h2>
-<h3>Version 1.5</h3>
-<ul>
-  <li>Dedicated <code>BIOS and UEFI Manager</code> submenu under NVDA Tools.</li>
-  <li>Conflict audit tool to diagnose duplicate add-ons or conflicting shortcuts.</li>
-  <li>Comprehensive diagnostic logging in <code>nvda.log</code>.</li>
-  <li>Full exception tracebacks (<code>exc_info=True</code>) on all backend operations.</li>
+  <li>BIOS / UEFI Settings: Opens the main configuration dialog.</li>
+  <li>Check conflicts with other add-ons: Diagnoses duplicate shortcuts or add-on collisions.</li>
+  <li>Documentation: Opens this user guide.</li>
 </ul>
 
 </body>
