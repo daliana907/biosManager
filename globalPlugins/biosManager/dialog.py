@@ -3,9 +3,6 @@ import addonHandler
 addonHandler.initTranslation()
 import threading
 import re
-import gui
-from gui import nvdaControls
-import core
 from logHandler import log
 import ui
 
