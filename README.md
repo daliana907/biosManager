@@ -1,5 +1,7 @@
 # Gestor de BIOS y UEFI para NVDA (BIOS / UEFI Manager)
 
+[![Pruebas](https://github.com/daliana907/biosManager/actions/workflows/pruebas.yml/badge.svg)](https://github.com/daliana907/biosManager/actions/workflows/pruebas.yml)
+
 Autora: Daliana
 Versión: 1.5
 Compatibilidad: NVDA 2023.1 en adelante

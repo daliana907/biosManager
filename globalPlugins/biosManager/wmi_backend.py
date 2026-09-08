@@ -20,6 +20,13 @@ log = logging.getLogger(__name__)
 class WmiBackend:
 	"""Clase para interactuar con la BIOS/UEFI mediante WMI."""
 
+	# Cuanto se espera, como maximo, a que Windows conteste. Sin estos limites una
+	# consulta que se queda colgada no termina nunca: el aviso de progreso sigue
+	# sonando y no se puede volver a intentar.
+	ESPERA_CON_PERMISOS = 120   # segundos, incluye el tiempo de aceptar el permiso
+	ESPERA_CONSULTA = 30        # segundos, para las consultas normales a la BIOS
+
+
 	def __init__(self):
 		self._selections_cache: Dict[str, List[str]] = {}
 
@@ -71,10 +78,18 @@ $proc.WaitForExit()
 				f.write(launcher_script)
 
 			log.info("BIOS Manager: Lanzando PowerShell con permisos de administrador...")
-			res = subprocess.run(
-				["powershell", "-ExecutionPolicy", "Bypass", "-NoProfile", "-File", launcher_file],
-				creationflags=subprocess.CREATE_NO_WINDOW,
-			)
+			try:
+				# Dos minutos: es lo que se le concede a la persona para aceptar el
+				# aviso de permisos de Windows. Sin este limite, un aviso que nadie
+				# contesta deja la consulta esperando para siempre.
+				res = subprocess.run(
+					["powershell", "-ExecutionPolicy", "Bypass", "-NoProfile", "-File", launcher_file],
+					creationflags=subprocess.CREATE_NO_WINDOW,
+					timeout=self.ESPERA_CON_PERMISOS,
+				)
+			except subprocess.TimeoutExpired:
+				log.error("BIOS Manager: se agotó la espera del permiso de administrador.")
+				return False, None
 			log.info(f"BIOS Manager: El lanzador terminó con código {res.returncode}.")
 
 			salida = None
@@ -176,9 +191,14 @@ $results | ConvertTo-Json -Compress
 		selections = []
 		try:
 			cmd = f"(Get-CimInstance -Namespace root\\wmi -ClassName Lenovo_GetBiosSelections | Invoke-CimMethod -MethodName GetBiosSelections -Arguments @{{Item='{setting_name}'}}).Selections"
-			res = subprocess.run(["powershell", "-NoProfile", "-Command", cmd], capture_output=True, text=True, creationflags=subprocess.CREATE_NO_WINDOW)
+			res = subprocess.run(["powershell", "-NoProfile", "-Command", cmd], capture_output=True, text=True,
+				creationflags=subprocess.CREATE_NO_WINDOW, timeout=self.ESPERA_CONSULTA)
 			if res.returncode == 0 and res.stdout.strip():
 				selections = [opt.strip() for opt in res.stdout.strip().split(",") if opt.strip()]
+		except subprocess.TimeoutExpired:
+			# Algunas BIOS no contestan a esta consulta. Sin limite de tiempo, la
+			# ventana se quedaba cargando sin fin.
+			log.error(f"BIOS Manager: la BIOS no respondió al preguntar las opciones de '{setting_name}'.")
 		except Exception as e:
 			log.error(f"Error obteniendo opciones PowerShell para '{setting_name}': {e}")
 
@@ -341,13 +361,17 @@ foreach ($r in $resultados) {
 		"""
 		try:
 			cmd = "(Get-CimInstance -Namespace root\\wmi -ClassName Lenovo_DiscardBiosSettings | Invoke-CimMethod -MethodName DiscardBiosSettings -Arguments @{Parameter=''}).return"
-			res = subprocess.run(["powershell", "-NoProfile", "-Command", cmd], capture_output=True, text=True, creationflags=subprocess.CREATE_NO_WINDOW)
+			res = subprocess.run(["powershell", "-NoProfile", "-Command", cmd], capture_output=True, text=True,
+				creationflags=subprocess.CREATE_NO_WINDOW, timeout=self.ESPERA_CONSULTA)
 			if res.returncode == 0:
 				ret_val = res.stdout.strip()
 				if ret_val.lower() == "success":
 					return True, _("Cambios descartados.")
 				return False, f"La BIOS devolvió: {ret_val}"
 			return False, f"Error PS: {res.stderr.strip()}"
+		except subprocess.TimeoutExpired:
+			log.error("BIOS Manager: la BIOS no respondió al descartar los cambios.")
+			return False, _("La BIOS no respondió. Los cambios pueden seguir pendientes.")
 		except Exception as e:
 			return False, f"Excepción: {e}"
 
@@ -363,7 +387,8 @@ foreach ($r in $resultados) {
 				["shutdown.exe", "/r", "/fw", "/t", "2"],
 				capture_output=True,
 				text=True,
-				creationflags=subprocess.CREATE_NO_WINDOW
+				creationflags=subprocess.CREATE_NO_WINDOW,
+				timeout=WmiBackend.ESPERA_CONSULTA,
 			)
 			log.info(f"BIOS Manager: Comando shutdown ejecutado. Código retorno={res.returncode}, salida='{res.stdout.strip()}', error='{res.stderr.strip()}'")
 			if res.returncode == 0:
