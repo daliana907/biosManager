@@ -181,5 +181,61 @@ class ValidacionDelOrdenDeArranque(unittest.TestCase):
             self.assertIsNone(v._problemaEnOrdenDeArranque(":".join(actual)))
 
 
+class TipoDeEditorSegunElValor(unittest.TestCase):
+    """El diálogo elige qué editor mostrar mirando cómo es el valor actual.
+
+    Antes esa decisión estaba enredada con la construcción de cada editor, en
+    una cascada de sesenta líneas donde no se podía comprobar por separado.
+    """
+
+    def tipo(self, nombre, valor, opciones=None):
+        # se pasa la clase como 'self': el método solo consulta una constante
+        return Ventana._tipoDeEditor(Ventana, nombre, valor, opciones)
+
+    def test_el_orden_de_arranque_usa_la_lista_reordenable(self):
+        self.assertEqual(self.tipo("BootOrder", "NVMe0:USBHDD"), "bootorder_list")
+        self.assertEqual(self.tipo("BootOrder", ""), "bootorder_list")
+
+    def test_con_varias_opciones_usa_un_desplegable(self):
+        self.assertEqual(self.tipo("SecureBoot", "Enable", ["Enable", "Disable"]),
+                         "choice")
+
+    def test_con_una_sola_opcion_no_usa_desplegable(self):
+        """Un desplegable de un solo elemento no deja elegir nada."""
+        self.assertNotEqual(self.tipo("SecureBoot", "Enable", ["Enable"]), "choice")
+
+    def test_reconoce_fechas_y_horas(self):
+        for valor in ("2026-09-08", "2026/09/08", "1999/12/31"):
+            with self.subTest(valor=valor):
+                self.assertEqual(self.tipo("SystemDate", valor), "date")
+        for valor in ("10:30:00", "23:59:59", "00:00:00"):
+            with self.subTest(valor=valor):
+                self.assertEqual(self.tipo("SystemTime", valor), "time")
+
+    def test_lo_que_solo_parece_fecha_u_hora_no_cuenta(self):
+        """Una fecha con un dígito de menos no la entiende el editor de fechas."""
+        for valor in ("2026-9-8", "10:30", "2026-09", "8/9/2026"):
+            with self.subTest(valor=valor):
+                self.assertIn(self.tipo("X", valor), ("text", "spin"))
+
+    def test_los_numeros_usan_casilla_numerica(self):
+        for valor in ("1234", " 42 ", "0", "007"):
+            with self.subTest(valor=valor):
+                self.assertEqual(self.tipo("X", valor), "spin")
+
+    def test_lo_demas_es_texto_libre(self):
+        for valor in ("texto libre", "", "  ", "abc123", "-5"):
+            with self.subTest(valor=valor):
+                self.assertEqual(self.tipo("X", valor), "text")
+
+    def test_siempre_devuelve_uno_de_los_seis_tipos(self):
+        conocidos = {"bootorder_list", "choice", "date", "time", "spin", "text"}
+        for nombre in ("X", "BootOrder", ""):
+            for valor in ("", "abc", "12", "2026-01-01", "1:2:3", "a:b:c"):
+                for opciones in (None, [], ["uno"], ["uno", "dos"]):
+                    with self.subTest(nombre=nombre, valor=valor, opciones=opciones):
+                        self.assertIn(self.tipo(nombre, valor, opciones), conocidos)
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

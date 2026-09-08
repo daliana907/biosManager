@@ -219,97 +219,137 @@ class BiosManagerDialog(wx.Dialog):
 				lbl_nuevo = wx.StaticText(self.right_panel, label=f"{_('Quedaría así:')} {self._ordenConCambios(val, pending)}")
 				self.right_sizer.Add(lbl_nuevo, 0, wx.LEFT | wx.BOTTOM, 5)
 		
-		self.editor_type = "text"
 		self._current_edit_name = name
-			
-		if name == "BootOrder":
-			# El orden de arranque no es "elegir un valor", es reordenar una lista.
-			# Antes había un desplegable por posición, cada uno con todos los
-			# dispositivos, sin relación entre ellos: se podía repetir uno y perder
-			# otro sin que nada avisara. Con una sola lista que solo se reordena,
-			# eso no puede pasar.
-			self.editor_type = "bootorder_list"
-			dispositivos = [d for d in display_val.split(":") if d.strip()]
-			self._bootOriginal = list(dispositivos)
+		self.editor_type = self._tipoDeEditor(name, display_val, opts)
 
-			lbl = wx.StaticText(self.right_panel, label=_(
-				"&Orden de arranque. Usa Alt más flecha arriba o abajo para mover el dispositivo elegido:"
-			))
-			self.right_sizer.Add(lbl, 0, wx.TOP | wx.LEFT, 5)
-
-			self.boot_list = wx.ListBox(self.right_panel, choices=dispositivos, style=wx.LB_SINGLE)
-			if dispositivos:
-				self.boot_list.SetSelection(0)
-			self.boot_list.Bind(wx.EVT_KEY_DOWN, self._on_boot_key)
-			self.right_sizer.Add(self.boot_list, 1, wx.EXPAND | wx.ALL, 5)
-
-			fila = wx.BoxSizer(wx.HORIZONTAL)
-			self.btn_subir = wx.Button(self.right_panel, label=_("S&ubir"))
-			self.btn_subir.Bind(wx.EVT_BUTTON, lambda evt: self._moverArranque(-1))
-			fila.Add(self.btn_subir, 0, wx.RIGHT, 5)
-			self.btn_bajar = wx.Button(self.right_panel, label=_("Ba&jar"))
-			self.btn_bajar.Bind(wx.EVT_BUTTON, lambda evt: self._moverArranque(1))
-			fila.Add(self.btn_bajar, 0, 0)
-			self.right_sizer.Add(fila, 0, wx.ALL, 5)
-		elif opts and len(opts) > 1:
-			self.editor_type = "choice"
-			lbl = wx.StaticText(self.right_panel, label=_("Elige el nuevo valor:"))
-			self.right_sizer.Add(lbl, 0, wx.TOP | wx.LEFT, 5)
-			self.ctrl = wx.Choice(self.right_panel, choices=opts)
-			if display_val in opts:
-				self.ctrl.SetStringSelection(display_val)
-			else:
-				self.ctrl.SetSelection(0)
-			self.right_sizer.Add(self.ctrl, 0, wx.EXPAND | wx.ALL, 5)
+		if self.editor_type == "bootorder_list":
+			self._editorDeOrdenDeArranque(display_val)
+		elif self.editor_type == "choice":
+			self._editorDeOpciones(display_val, opts)
+		elif self.editor_type == "date":
+			self._editorDeFecha(display_val)
+		elif self.editor_type == "time":
+			self._editorDeHora(display_val)
+		elif self.editor_type == "spin":
+			self._editorDeNumero(display_val)
 		else:
-			if re.match(r'^\d{4}[/-]\d{2}[/-]\d{2}$', display_val.strip()):
-				self.editor_type = "date"
-				lbl = wx.StaticText(self.right_panel, label=_("Fecha (Año, Mes, Día):"))
-				self.right_sizer.Add(lbl, 0, wx.TOP | wx.LEFT, 5)
-				parts = re.split(r'[/-]', display_val.strip())
-				
-				row = wx.BoxSizer(wx.HORIZONTAL)
-				self.sp_year = wx.SpinCtrl(self.right_panel, value=parts[0], min=1980, max=2099, size=(60, -1))
-				self.sp_month = wx.SpinCtrl(self.right_panel, value=parts[1], min=1, max=12, size=(50, -1))
-				self.sp_day = wx.SpinCtrl(self.right_panel, value=parts[2], min=1, max=31, size=(50, -1))
-				
-				row.Add(self.sp_year, 0, wx.RIGHT, 5)
-				row.Add(self.sp_month, 0, wx.RIGHT, 5)
-				row.Add(self.sp_day, 0, 0)
-				self.right_sizer.Add(row, 0, wx.ALL, 5)
-			elif re.match(r'^\d{2}:\d{2}:\d{2}$', display_val.strip()):
-				self.editor_type = "time"
-				lbl = wx.StaticText(self.right_panel, label=_("Hora (Hora, Minuto, Segundo):"))
-				self.right_sizer.Add(lbl, 0, wx.TOP | wx.LEFT, 5)
-				parts = display_val.strip().split(':')
-				
-				row = wx.BoxSizer(wx.HORIZONTAL)
-				self.sp_h = wx.SpinCtrl(self.right_panel, value=parts[0], min=0, max=23, size=(50, -1))
-				self.sp_m = wx.SpinCtrl(self.right_panel, value=parts[1], min=0, max=59, size=(50, -1))
-				self.sp_s = wx.SpinCtrl(self.right_panel, value=parts[2], min=0, max=59, size=(50, -1))
-				
-				row.Add(self.sp_h, 0, wx.RIGHT, 5)
-				row.Add(self.sp_m, 0, wx.RIGHT, 5)
-				row.Add(self.sp_s, 0, 0)
-				self.right_sizer.Add(row, 0, wx.ALL, 5)
-			elif display_val.strip().isdigit():
-				self.editor_type = "spin"
-				lbl = wx.StaticText(self.right_panel, label=_("Valor numérico:"))
-				self.right_sizer.Add(lbl, 0, wx.TOP | wx.LEFT, 5)
-				self.ctrl = wx.SpinCtrl(self.right_panel, value=display_val.strip(), min=0, max=999999)
-				self.right_sizer.Add(self.ctrl, 0, wx.EXPAND | wx.ALL, 5)
-			else:
-				self.editor_type = "text"
-				lbl = wx.StaticText(self.right_panel, label=_("Texto libre:"))
-				self.right_sizer.Add(lbl, 0, wx.TOP | wx.LEFT, 5)
-				self.ctrl = wx.TextCtrl(self.right_panel, value=display_val)
-				self.right_sizer.Add(self.ctrl, 0, wx.EXPAND | wx.ALL, 5)
+			self._editorDeTexto(display_val)
+
 
 		self.btn_apply = wx.Button(self.right_panel, label=_("&Añadir a cambios pendientes"))
 		self.btn_apply.Bind(wx.EVT_BUTTON, self._on_apply)
 		self.right_sizer.Add(self.btn_apply, 0, wx.ALL | wx.ALIGN_RIGHT, 5)
 
 		self.right_panel.Layout()
+
+	def _tipoDeEditor(self, name, display_val, opts):
+		"""Decide que clase de editor pide un ajuste, mirando como es su valor.
+
+		Devuelve una de estas palabras: bootorder_list, choice, date, time, spin o
+		text. Antes esta decision estaba mezclada con la construccion de cada
+		editor, en una cascada de sesenta lineas.
+		"""
+		if name == self.ORDEN_DE_ARRANQUE:
+			return "bootorder_list"
+		if opts and len(opts) > 1:
+			return "choice"
+		texto = display_val.strip()
+		if re.match(r'^\d{4}[/-]\d{2}[/-]\d{2}$', texto):
+			return "date"
+		if re.match(r'^\d{2}:\d{2}:\d{2}$', texto):
+			return "time"
+		if texto.isdigit():
+			return "spin"
+		return "text"
+
+	def _editorDeOrdenDeArranque(self, display_val):
+		"""Lista reordenable con los dispositivos de arranque."""
+		# El orden de arranque no es "elegir un valor", es reordenar una lista.
+		# Antes había un desplegable por posición, cada uno con todos los
+		# dispositivos, sin relación entre ellos: se podía repetir uno y perder
+		# otro sin que nada avisara. Con una sola lista que solo se reordena,
+		# eso no puede pasar.
+		self.editor_type = "bootorder_list"
+		dispositivos = [d for d in display_val.split(":") if d.strip()]
+		self._bootOriginal = list(dispositivos)
+
+		lbl = wx.StaticText(self.right_panel, label=_(
+			"&Orden de arranque. Usa Alt más flecha arriba o abajo para mover el dispositivo elegido:"
+		))
+		self.right_sizer.Add(lbl, 0, wx.TOP | wx.LEFT, 5)
+
+		self.boot_list = wx.ListBox(self.right_panel, choices=dispositivos, style=wx.LB_SINGLE)
+		if dispositivos:
+			self.boot_list.SetSelection(0)
+		self.boot_list.Bind(wx.EVT_KEY_DOWN, self._on_boot_key)
+		self.right_sizer.Add(self.boot_list, 1, wx.EXPAND | wx.ALL, 5)
+
+		fila = wx.BoxSizer(wx.HORIZONTAL)
+		self.btn_subir = wx.Button(self.right_panel, label=_("S&ubir"))
+		self.btn_subir.Bind(wx.EVT_BUTTON, lambda evt: self._moverArranque(-1))
+		fila.Add(self.btn_subir, 0, wx.RIGHT, 5)
+		self.btn_bajar = wx.Button(self.right_panel, label=_("Ba&jar"))
+		self.btn_bajar.Bind(wx.EVT_BUTTON, lambda evt: self._moverArranque(1))
+		fila.Add(self.btn_bajar, 0, 0)
+		self.right_sizer.Add(fila, 0, wx.ALL, 5)
+
+	def _editorDeOpciones(self, display_val, opts):
+		"""Desplegable con los valores que admite el ajuste."""
+		lbl = wx.StaticText(self.right_panel, label=_("Elige el nuevo valor:"))
+		self.right_sizer.Add(lbl, 0, wx.TOP | wx.LEFT, 5)
+		self.ctrl = wx.Choice(self.right_panel, choices=opts)
+		if display_val in opts:
+			self.ctrl.SetStringSelection(display_val)
+		else:
+			self.ctrl.SetSelection(0)
+		self.right_sizer.Add(self.ctrl, 0, wx.EXPAND | wx.ALL, 5)
+
+	def _editorDeFecha(self, display_val):
+		"""Tres casillas numericas: ano, mes y dia."""
+		lbl = wx.StaticText(self.right_panel, label=_("Fecha (Año, Mes, Día):"))
+		self.right_sizer.Add(lbl, 0, wx.TOP | wx.LEFT, 5)
+		parts = re.split(r'[/-]', display_val.strip())
+		
+		row = wx.BoxSizer(wx.HORIZONTAL)
+		self.sp_year = wx.SpinCtrl(self.right_panel, value=parts[0], min=1980, max=2099, size=(60, -1))
+		self.sp_month = wx.SpinCtrl(self.right_panel, value=parts[1], min=1, max=12, size=(50, -1))
+		self.sp_day = wx.SpinCtrl(self.right_panel, value=parts[2], min=1, max=31, size=(50, -1))
+		
+		row.Add(self.sp_year, 0, wx.RIGHT, 5)
+		row.Add(self.sp_month, 0, wx.RIGHT, 5)
+		row.Add(self.sp_day, 0, 0)
+		self.right_sizer.Add(row, 0, wx.ALL, 5)
+
+	def _editorDeHora(self, display_val):
+		"""Tres casillas numericas: hora, minuto y segundo."""
+		lbl = wx.StaticText(self.right_panel, label=_("Hora (Hora, Minuto, Segundo):"))
+		self.right_sizer.Add(lbl, 0, wx.TOP | wx.LEFT, 5)
+		parts = display_val.strip().split(':')
+		
+		row = wx.BoxSizer(wx.HORIZONTAL)
+		self.sp_h = wx.SpinCtrl(self.right_panel, value=parts[0], min=0, max=23, size=(50, -1))
+		self.sp_m = wx.SpinCtrl(self.right_panel, value=parts[1], min=0, max=59, size=(50, -1))
+		self.sp_s = wx.SpinCtrl(self.right_panel, value=parts[2], min=0, max=59, size=(50, -1))
+		
+		row.Add(self.sp_h, 0, wx.RIGHT, 5)
+		row.Add(self.sp_m, 0, wx.RIGHT, 5)
+		row.Add(self.sp_s, 0, 0)
+		self.right_sizer.Add(row, 0, wx.ALL, 5)
+
+	def _editorDeNumero(self, display_val):
+		"""Una casilla numerica."""
+		lbl = wx.StaticText(self.right_panel, label=_("Valor numérico:"))
+		self.right_sizer.Add(lbl, 0, wx.TOP | wx.LEFT, 5)
+		self.ctrl = wx.SpinCtrl(self.right_panel, value=display_val.strip(), min=0, max=999999)
+		self.right_sizer.Add(self.ctrl, 0, wx.EXPAND | wx.ALL, 5)
+
+	def _editorDeTexto(self, display_val):
+		"""Un campo de texto libre, para cuando no encaja nada mas."""
+		lbl = wx.StaticText(self.right_panel, label=_("Texto libre:"))
+		self.right_sizer.Add(lbl, 0, wx.TOP | wx.LEFT, 5)
+		self.ctrl = wx.TextCtrl(self.right_panel, value=display_val)
+		self.right_sizer.Add(self.ctrl, 0, wx.EXPAND | wx.ALL, 5)
+
 
 	ORDEN_DE_ARRANQUE = "BootOrder"
 
