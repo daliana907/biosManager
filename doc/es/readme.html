@@ -13,7 +13,7 @@
 </head>
 <body>
 <h1>Gestor de BIOS y UEFI para NVDA</h1>
-<p>Autora: Daliana | Versión 1.5 | Compatible con NVDA 2023.1 en adelante</p>
+<p>Autora: Daliana | Versión 1.6 | Compatible con NVDA 2023.1 en adelante</p>
 
 <p>Este complemento te permite consultar y modificar las opciones de la BIOS y UEFI de tu equipo directamente desde Windows con NVDA, sin tener que reiniciar para entrar a ciegas al menú del fabricante.</p>
 
@@ -42,6 +42,27 @@
   <li>Comprobar conflictos con otros complementos: Revisa si hay algún otro complemento que use los mismos atajos o funciones.</li>
   <li>Documentación: Abre este manual de ayuda.</li>
 </ul>
+
+<h2>Novedades de la versión 1.6 (8 de septiembre de 2026)</h2>
+<h3>Corregido</h3>
+<ul>
+  <li>Los cambios en la BIOS no llegaban a aplicarse: la orden que se enviaba a Windows estaba mal formada.</li>
+  <li>El archivo con la respuesta de la BIOS quedaba en una carpeta que NVDA no siempre podía leer, y la operación parecía fallar sin motivo.</li>
+  <li>Al aplicar un cambio se daba por bueno sin comprobarlo. Ahora se vuelve a leer el valor y se informa de si la BIOS lo aceptó o lo rechazó.</li>
+  <li>Guardar en la BIOS bloqueaba NVDA hasta terminar. Ahora se hace en segundo plano.</li>
+  <li>Al cerrar la ventana con un cambio escrito pero sin aplicar, ese cambio se perdía en silencio. Ahora avisa.</li>
+  <li>El orden de arranque se editaba con un desplegable por posición, y se podía repetir un dispositivo y omitir otro sin que nada lo advirtiera.</li>
+  <li>Las consultas a la BIOS podían quedarse esperando indefinidamente si el equipo no respondía o si nadie contestaba al aviso de permisos.</li>
+</ul>
+<h3>Cambios internos</h3>
+<ul>
+  <li>El orden de arranque se edita ahora en una sola lista que se reordena con Alt y las flechas, y al aplicar se resume solo lo que cambió de sitio.</li>
+  <li>El editor de opciones separa decidir qué tipo de editor toca de construirlo, y esa decisión tiene pruebas propias.</li>
+  <li>Se eliminaron unas 119 líneas de código que ya no se usaba.</li>
+  <li>Se corrigieron dos problemas de seguridad: un archivo temporal con nombre predecible y valores que se enviaban a Windows sin escapar.</li>
+  <li>Se añadieron 52 comprobaciones automáticas que se ejecutan solas en GitHub con cada cambio.</li>
+</ul>
+<p>El listado completo de todas las versiones está en el archivo CHANGELOG.md del repositorio del complemento.</p>
 
 </body>
 </html>

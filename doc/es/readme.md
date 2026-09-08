@@ -1,7 +1,7 @@
 # Gestor de BIOS y UEFI para NVDA (BIOS / UEFI Manager)
 
 Autora: Daliana
-Versión: 1.5
+Versión: 1.6
 Compatibilidad: NVDA 2023.1 en adelante
 Licencia: GNU GPL v2
 
@@ -38,3 +38,26 @@ Sí, es totalmente seguro:
 5. Cuando termines, dale al botón Aceptar, confirma el aviso de Windows y listo. Los cambios se aplicarán la próxima vez que reinicies el equipo.
 
 ---
+
+## Novedades de la versión 1.6 (8 de septiembre de 2026)
+
+### Corregido
+
+- Los cambios en la BIOS no llegaban a aplicarse: la orden que se enviaba a Windows estaba mal formada.
+- El archivo con la respuesta de la BIOS quedaba en una carpeta que NVDA no siempre podía leer, y la operación parecía fallar sin motivo.
+- Al aplicar un cambio se daba por bueno sin comprobarlo. Ahora se vuelve a leer el valor y se informa de si la BIOS lo aceptó o lo rechazó.
+- Guardar en la BIOS bloqueaba NVDA hasta terminar. Ahora se hace en segundo plano.
+- Al cerrar la ventana con un cambio escrito pero sin aplicar, ese cambio se perdía en silencio. Ahora avisa.
+- El orden de arranque se editaba con un desplegable por posición, y se podía repetir un dispositivo y omitir otro sin que nada lo advirtiera.
+- Las consultas a la BIOS podían quedarse esperando indefinidamente si el equipo no respondía o si nadie contestaba al aviso de permisos.
+
+### Cambios internos
+
+- El orden de arranque se edita ahora en una sola lista que se reordena con Alt y las flechas, y al aplicar se resume solo lo que cambió de sitio.
+- El editor de opciones separa decidir qué tipo de editor toca de construirlo, y esa decisión tiene pruebas propias.
+- Se eliminaron unas 119 líneas de código que ya no se usaba.
+- Se corrigieron dos problemas de seguridad: un archivo temporal con nombre predecible y valores que se enviaban a Windows sin escapar.
+- Se añadieron 52 comprobaciones automáticas que se ejecutan solas en GitHub con cada cambio.
+
+El listado completo de todas las versiones está en el archivo CHANGELOG.md
+del repositorio del complemento.
