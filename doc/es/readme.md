@@ -1,7 +1,7 @@
 # Gestor de BIOS y UEFI para NVDA (BIOS / UEFI Manager)
 
 Autora: Daliana
-Versión: 1.7
+Versión: 1.8
 Compatibilidad: NVDA 2023.1 en adelante
 Licencia: GNU GPL v2
 

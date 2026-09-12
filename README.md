@@ -9,7 +9,7 @@ Licencia: GNU GPL v2
 
 [Read in English below](#english-version)
 
-[Descargar biosManager 1.7 (.nvda-addon)](https://github.com/daliana907/biosManager/releases/latest/download/biosManager-1.8.nvda-addon) · [Registro de cambios](CHANGELOG.md)
+[Descargar última versión / Download latest (.nvda-addon)](https://github.com/daliana907/biosManager/releases/latest/download/biosManager-1.8.nvda-addon) · [Registro de cambios](CHANGELOG.md)
 
 ---
 
