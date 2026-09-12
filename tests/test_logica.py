@@ -16,6 +16,7 @@ import nvda_falso                                    # noqa: E402
 nvda_falso.instalar()
 
 RAIZ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.join(RAIZ, "globalPlugins"))
 sys.path.insert(0, os.path.join(RAIZ, "globalPlugins", "biosManager"))
 
 import wmi_backend                                   # noqa: E402
@@ -235,6 +236,78 @@ class TipoDeEditorSegunElValor(unittest.TestCase):
                 for opciones in (None, [], ["uno"], ["uno", "dos"]):
                     with self.subTest(nombre=nombre, valor=valor, opciones=opciones):
                         self.assertIn(self.tipo(nombre, valor, opciones), conocidos)
+
+
+class ValidacionDeFecha(unittest.TestCase):
+    """El cálculo de días por mes debe considerar años bisiestos y meses de 30/31 días."""
+
+    def test_febrero_bisiesto(self):
+        self.assertEqual(Ventana._diasEnMes(Ventana, 2024, 2), 29)
+
+    def test_febrero_no_bisiesto(self):
+        self.assertEqual(Ventana._diasEnMes(Ventana, 2025, 2), 28)
+
+    def test_meses_de_30_dias(self):
+        for mes in (4, 6, 9, 11):
+            with self.subTest(mes=mes):
+                self.assertEqual(Ventana._diasEnMes(Ventana, 2026, mes), 30)
+
+    def test_meses_de_31_dias(self):
+        for mes in (1, 3, 5, 7, 8, 10, 12):
+            with self.subTest(mes=mes):
+                self.assertEqual(Ventana._diasEnMes(Ventana, 2026, mes), 31)
+
+
+class AuditoriaDeConflictosRegex(unittest.TestCase):
+    """La comprobación de complementos de BIOS no debe dar falsos positivos con 'cambios'."""
+
+    PATRON = r'\b(bios|uefi)\b'
+
+    def test_no_coincide_con_cambios(self):
+        import re
+        falsos_positivos = [
+            "Gestor de cambios del sistema",
+            "Notificador de cambios de estado",
+            "Herramienta para registrar cambios",
+            "Control de cambios y versiones",
+        ]
+        for texto in falsos_positivos:
+            with self.subTest(texto=texto):
+                self.assertIsNone(re.search(self.PATRON, texto, re.IGNORECASE))
+
+    def test_coincide_con_bios_y_uefi_reales(self):
+        import re
+        reales = [
+            "Configuración avanzada de BIOS para NVDA",
+            "Gestor de firmware UEFI",
+            "bios settings utility",
+            "Herramienta UEFI y arranque",
+        ]
+        for texto in reales:
+            with self.subTest(texto=texto):
+                self.assertIsNotNone(re.search(self.PATRON, texto, re.IGNORECASE))
+
+
+class SeguridadYAtajos(unittest.TestCase):
+    """Comprobaciones de seguridad (modo seguro) y de ausencia de atajo conflictivo por defecto."""
+
+    def test_bloquea_carga_en_modo_seguro(self):
+        import globalVars
+        import globalPluginHandler
+        import biosManager as pluginMod
+        globalVars.appArgs.secureMode = True
+        try:
+            with self.assertRaises(globalPluginHandler.ActionCancelled):
+                pluginMod.GlobalPlugin()
+        finally:
+            globalVars.appArgs.secureMode = False
+
+    def test_sin_atajo_por_defecto_para_no_pisar_bateria(self):
+        import biosManager as pluginMod
+        # NVDA+Shift+B es el comando nativo de batería en NVDA; script_openBiosManager
+        # no debe tener ningún gesto asignado por defecto en el código.
+        gesto = getattr(pluginMod.GlobalPlugin.script_openBiosManager, "gesture", None)
+        self.assertIsNone(gesto)
 
 
 if __name__ == "__main__":

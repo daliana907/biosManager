@@ -1,11 +1,18 @@
 # -*- coding: utf-8 -*-
+# biosManager: Complemento para gestionar parámetros de BIOS/UEFI en NVDA
+# Copyright (C) 2026 Daliana
+# Este archivo está cubierto por la Licencia Pública General de GNU (GPLv2).
+# Consulta el archivo LICENSE para más detalles.
 
 import os
-import logging
+import re
+import threading
+import time
 import wx
 import addonHandler
 addonHandler.initTranslation()
 import globalPluginHandler
+import globalVars
 import scriptHandler
 import inputCore
 import gui
@@ -15,335 +22,336 @@ from .dialog import BiosManagerDialog
 from .wmi_backend import WmiBackend
 
 try:
-    from logHandler import log
+	from logHandler import log
 except ImportError:
-    import logging
-    log = logging.getLogger(__name__)
+	import logging
+	log = logging.getLogger(__name__)
+
 
 class GlobalPlugin(globalPluginHandler.GlobalPlugin):
-    scriptCategory = _("Gestor de BIOS y UEFI")
+	# Translators: Nombre de la categoría en el diálogo de Gestos de Entrada de NVDA.
+	scriptCategory = _("Gestor de BIOS y UEFI")
 
-    def __init__(self):
-        """Arranca el complemento en cuanto NVDA lo carga.
+	def __init__(self):
+		"""Arranca el complemento en cuanto NVDA lo carga."""
+		if getattr(globalVars.appArgs, "secureMode", False):
+			raise globalPluginHandler.ActionCancelled("biosManager does not run in secure mode")
 
-        Crea el puente que habla con la BIOS, añade al menú Herramientas de NVDA
-        el submenú "Gestor de BIOS y UEFI" con sus tres opciones (abrir la
-        ventana, comprobar conflictos y ver la documentación) y lanza en segundo
-        plano la primera revisión de conflictos, para que NVDA no se quede
-        esperando mientras esa revisión ocurre.
-        """
-        super().__init__()
-        log.info("BIOS Manager: Inicializando complemento (v1.7)...")
-        self.backend = WmiBackend()
-        self._dialog = None
+		super().__init__()
+		log.info("BIOS Manager: Inicializando complemento (v1.7)...")
+		self.backend = WmiBackend()
+		self._dialog = None
 
-        # Agregar submenú organizado en el menú Herramientas de NVDA
-        try:
-            self._toolsMenu = gui.mainFrame.sysTrayIcon.toolsMenu
-            self._subMenu = wx.Menu()
-            self._itemConfig = self._subMenu.Append(
-                wx.ID_ANY,
-                _("&Configuración de la BIOS / UEFI..."),
-                _("Abre la ventana accesible para consultar y configurar la BIOS/UEFI")
-            )
-            self._itemConflicts = self._subMenu.Append(
-                wx.ID_ANY,
-                _("&Comprobar conflictos con otros complementos..."),
-                _("Comprueba si existen conflictos de atajos de teclado o complementos incompatibles con el Gestor de BIOS")
-            )
-            self._itemDoc = self._subMenu.Append(
-                wx.ID_ANY,
-                _("&Documentación"),
-                _("Abre la ayuda y documentación del Gestor de BIOS")
-            )
-            gui.mainFrame.sysTrayIcon.Bind(wx.EVT_MENU, self._on_menu_open, self._itemConfig)
-            gui.mainFrame.sysTrayIcon.Bind(wx.EVT_MENU, self._on_menu_conflicts, self._itemConflicts)
-            gui.mainFrame.sysTrayIcon.Bind(wx.EVT_MENU, self._on_menu_doc, self._itemDoc)
-            self._subMenuItem = self._toolsMenu.AppendSubMenu(
-                self._subMenu,
-                _("&Gestor de BIOS y UEFI"),
-                _("Opciones y configuración accesible de la BIOS/UEFI")
-            )
-            log.info("BIOS Manager: Submenú 'Gestor de BIOS y UEFI' registrado en Herramientas exitosamente.")
-        except Exception as e:
-            log.error(f"BIOS Manager: No se pudo registrar el submenú en Herramientas: {e}", exc_info=True)
-            self._subMenuItem = None
+		# Agregar submenú organizado en el menú Herramientas de NVDA
+		try:
+			self._toolsMenu = gui.mainFrame.sysTrayIcon.toolsMenu
+			self._subMenu = wx.Menu()
 
-        import threading
-        threading.Thread(target=self._startupBackgroundWorker, daemon=True).start()
-        log.info("BIOS Manager: Complemento iniciado y listo.")
+			# Translators: Opción del menú para abrir la configuración de BIOS/UEFI.
+			self._itemConfig = self._subMenu.Append(
+				wx.ID_ANY,
+				_("&Configuración de la BIOS / UEFI..."),
+				_("Abre la ventana accesible para consultar y configurar la BIOS/UEFI")
+			)
 
-    def terminate(self):
-        """Deja todo como estaba cuando NVDA descarga el complemento.
+			# Translators: Opción del menú para reiniciar directamente en el firmware UEFI.
+			self._itemReboot = self._subMenu.Append(
+				wx.ID_ANY,
+				_("&Reiniciar en la configuración de UEFI / BIOS..."),
+				_("Reinicia el equipo directamente en la pantalla de configuración del firmware UEFI")
+			)
 
-        Cierra la ventana si quedó abierta, quita del menú Herramientas los tres
-        elementos que se añadieron y borra el submenú. Si esto no se hiciera, al
-        recargar los complementos los menús aparecerían repetidos.
-        """
-        log.info("BIOS Manager: Finalizando complemento...")
-        if hasattr(self, "_dialog") and self._dialog:
-            try:
-                self._dialog.Destroy()
-            except Exception as e:
-                log.debug(f"BIOS Manager: Error destruyendo diálogo en terminate: {e}")
-            self._dialog = None
+			# Translators: Opción del menú para comprobar conflictos con otros complementos.
+			self._itemConflicts = self._subMenu.Append(
+				wx.ID_ANY,
+				_("&Comprobar conflictos con otros complementos..."),
+				_("Comprueba si existen conflictos de atajos de teclado o complementos incompatibles con el Gestor de BIOS")
+			)
 
-        try:
-            if hasattr(self, "_itemConfig") and self._itemConfig:
-                gui.mainFrame.sysTrayIcon.Unbind(wx.EVT_MENU, source=self._itemConfig)
-            if hasattr(self, "_itemConflicts") and self._itemConflicts:
-                gui.mainFrame.sysTrayIcon.Unbind(wx.EVT_MENU, source=self._itemConflicts)
-            if hasattr(self, "_itemDoc") and self._itemDoc:
-                gui.mainFrame.sysTrayIcon.Unbind(wx.EVT_MENU, source=self._itemDoc)
-            if hasattr(self, "_subMenuItem") and self._subMenuItem:
-                try:
-                    self._toolsMenu.DestroyItem(self._subMenuItem)
-                except Exception:
-                    self._toolsMenu.Remove(self._subMenuItem)
-        except Exception as e:
-            log.debug(f"BIOS Manager: Error retirando submenú en terminate: {e}")
+			# Translators: Opción del menú para consultar la documentación.
+			self._itemDoc = self._subMenu.Append(
+				wx.ID_ANY,
+				_("&Documentación"),
+				_("Abre la ayuda y documentación del Gestor de BIOS")
+			)
 
-        super().terminate()
-        log.info("BIOS Manager: Complemento finalizado limpiamente.")
+			gui.mainFrame.sysTrayIcon.Bind(wx.EVT_MENU, self._on_menu_open, self._itemConfig)
+			gui.mainFrame.sysTrayIcon.Bind(wx.EVT_MENU, self._on_menu_reboot, self._itemReboot)
+			gui.mainFrame.sysTrayIcon.Bind(wx.EVT_MENU, self._on_menu_conflicts, self._itemConflicts)
+			gui.mainFrame.sysTrayIcon.Bind(wx.EVT_MENU, self._on_menu_doc, self._itemDoc)
 
-    def _on_menu_open(self, event):
-        log.info("BIOS Manager: Opción 'Configuración de la BIOS / UEFI' seleccionada en el menú.")
-        self.open_dialog()
+			# Translators: Nombre del submenú en el menú Herramientas de NVDA.
+			self._subMenuItem = self._toolsMenu.AppendSubMenu(
+				self._subMenu,
+				_("&Gestor de BIOS y UEFI"),
+				_("Opciones y configuración accesible de la BIOS/UEFI")
+			)
+			log.info("BIOS Manager: Submenú 'Gestor de BIOS y UEFI' registrado en Herramientas exitosamente.")
+		except Exception as e:
+			log.error(f"BIOS Manager: No se pudo registrar el submenú en Herramientas: {e}", exc_info=True)
+			self._subMenuItem = None
 
-    def _on_menu_conflicts(self, event):
-        log.info("BIOS Manager: Opción 'Comprobar conflictos' seleccionada en el menú.")
-        wx.CallAfter(self._checkAddonConflicts, interactive=True)
+		threading.Thread(target=self._startupBackgroundWorker, daemon=True).start()
+		log.info("BIOS Manager: Complemento iniciado y listo.")
 
-    def _on_menu_doc(self, event):
-        addon_dir = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", ".."))
-        try:
-            import languageHandler
-            lang = languageHandler.getLanguage().split("_")[0]
-        except Exception:
-            lang = "es"
-        candidates = [lang, "es", "en"]
-        doc = None
-        for l in candidates:
-            p = os.path.join(addon_dir, "doc", l, "readme.html")
-            if os.path.exists(p):
-                doc = p
-                break
-        if doc and os.path.exists(doc):
-            log.info(f"BIOS Manager: Abriendo documentación desde: {doc}")
-            os.startfile(doc)
-        else:
-            log.warning("BIOS Manager: Archivo de documentación no encontrado")
-            ui.message(_("No se encontró el archivo de documentación de BIOS Manager."))
+	def terminate(self):
+		"""Deja todo como estaba cuando NVDA descarga el complemento."""
+		log.info("BIOS Manager: Finalizando complemento...")
+		if hasattr(self, "_dialog") and self._dialog:
+			try:
+				self._dialog.Destroy()
+			except Exception as e:
+				log.debug(f"BIOS Manager: Error destruyendo diálogo en terminate: {e}")
+			self._dialog = None
 
-    def _startupBackgroundWorker(self):
-        try:
-            import time
-            time.sleep(3.0)
-            self._checkAddonConflicts(interactive=False)
-        except Exception as e:
-            log.error(f"BIOS Manager: Error durante la comprobación de conflictos: {e}", exc_info=True)
+		try:
+			if hasattr(self, "_itemConfig") and self._itemConfig:
+				gui.mainFrame.sysTrayIcon.Unbind(wx.EVT_MENU, source=self._itemConfig)
+			if hasattr(self, "_itemReboot") and self._itemReboot:
+				gui.mainFrame.sysTrayIcon.Unbind(wx.EVT_MENU, source=self._itemReboot)
+			if hasattr(self, "_itemConflicts") and self._itemConflicts:
+				gui.mainFrame.sysTrayIcon.Unbind(wx.EVT_MENU, source=self._itemConflicts)
+			if hasattr(self, "_itemDoc") and self._itemDoc:
+				gui.mainFrame.sysTrayIcon.Unbind(wx.EVT_MENU, source=self._itemDoc)
+			if hasattr(self, "_subMenuItem") and self._subMenuItem:
+				try:
+					self._toolsMenu.DestroyItem(self._subMenuItem)
+				except Exception:
+					self._toolsMenu.Remove(self._subMenuItem)
+		except Exception as e:
+			log.debug(f"BIOS Manager: Error retirando submenú en terminate: {e}")
 
-    def auditConflicts(self):
-        """
-        Audita y registra en nvda.log posibles conflictos con otros complementos instalados o activos,
-        incluyendo colisiones directas de atajos de teclado (gestos) y complementos de BIOS duplicados.
-        Devuelve una tupla (conflicts, warnings).
-        """
-        conflicts = []
-        warnings = []
+		super().terminate()
+		log.info("BIOS Manager: Complemento finalizado limpiamente.")
 
-        default_map = {
-            "kb:nvda+shift+b": _("Apertura de la ventana del Gestor de BIOS / UEFI"),
-        }
-        our_gestures_map = {}
-        g_map = getattr(self, "_gestureMap", {}) or {}
-        if g_map:
-            for g_id, script_ref in g_map.items():
-                norm_g = str(g_id).strip().lower().replace(" ", "")
-                desc = getattr(script_ref, "description", "") or getattr(script_ref, "__doc__", "") or default_map.get(norm_g, getattr(script_ref, "__name__", str(script_ref)))
-                our_gestures_map[norm_g] = desc
-        else:
-            our_gestures_map = default_map
+	def _on_menu_open(self, event):
+		log.info("BIOS Manager: Opción 'Configuración de la BIOS / UEFI' seleccionada en el menú.")
+		self.open_dialog()
 
-        log.info("BIOS Manager: Iniciando auditoría exhaustiva de compatibilidad y conflictos con otros complementos...")
+	def _on_menu_reboot(self, event):
+		log.info("BIOS Manager: Opción 'Reiniciar en la configuración de UEFI / BIOS' seleccionada en el menú.")
+		self.script_rebootToUefi(None)
 
-        # 1. Comprobar complementos duplicados de BIOS
-        try:
-            available_addons = list(addonHandler.getAvailableAddons())
-            log.info(f"BIOS Manager: Analizando {len(available_addons)} complementos disponibles en el sistema...")
-            for addon in available_addons:
-                addon_name = getattr(addon, "name", "").lower()
-                if addon_name == "biosmanager":
-                    continue
+	def _on_menu_conflicts(self, event):
+		log.info("BIOS Manager: Opción 'Comprobar conflictos' seleccionada en el menú.")
+		wx.CallAfter(self._checkAddonConflicts, interactive=True)
 
-                if getattr(addon, "isDisabled", False):
-                    continue
+	def _on_menu_doc(self, event):
+		try:
+			addon = addonHandler.getCodeAddon()
+			if addon:
+				addon.openDocumentation()
+				return
+		except Exception as e:
+			log.warning(f"BIOS Manager: Error abriendo documentación mediante API de NVDA: {e}")
+		# Translators: Mensaje de error si no se encuentra la documentación del complemento.
+		gui.messageBox(
+			_("No se pudo abrir la documentación del complemento."),
+			# Translators: Título del diálogo de error al abrir la documentación.
+			_("Documentación - Gestor de BIOS"),
+			wx.OK | wx.ICON_ERROR,
+		)
 
-                manifest = getattr(addon, "manifest", {}) or {}
-                summary = manifest.get("summary", "")
+	def _startupBackgroundWorker(self):
+		try:
+			time.sleep(3.0)
+			self._checkAddonConflicts(interactive=False)
+		except Exception as e:
+			log.error(f"BIOS Manager: Error durante la comprobación de conflictos: {e}", exc_info=True)
 
-                if "bios" in summary.lower() or "uefi" in summary.lower():
-                    msg = f"Complemento con funciones similares activo: '{addon.name}' ({summary}). Podría colisionar en la gestión de firmware."
-                    warnings.append(msg)
-                    log.warning(f"BIOS Manager ADVERTENCIA DE COMPATIBILIDAD: {msg}")
-        except Exception as e:
-            log.error(f"BIOS Manager: No se pudo verificar la lista de complementos instalados: {e}", exc_info=True)
+	def auditConflicts(self):
+		"""
+		Audita y registra en nvda.log posibles conflictos con otros complementos instalados o activos,
+		incluyendo colisiones directas de atajos de teclado (gestos) y complementos de BIOS duplicados.
+		Devuelve una tupla (conflicts, warnings).
+		"""
+		conflicts = []
+		warnings = []
 
-        # 2. Comprobar colisiones directas de atajos con otros plugins globales
-        try:
-            running = getattr(globalPluginHandler, "runningPlugins", set())
-            log.info(f"BIOS Manager: Inspeccionando {len(running)} plugins globales activos en busca de colisiones de atajos...")
-            for plugin in running:
-                if plugin is self:
-                    continue
-                plugin_mod = getattr(plugin, "__module__", str(type(plugin)))
-                if "biosmanager" in plugin_mod.lower():
-                    continue
+		our_gestures_map = {}
+		g_map = getattr(self, "_gestureMap", {}) or {}
+		if g_map:
+			for g_id, script_ref in g_map.items():
+				norm_g = str(g_id).strip().lower().replace(" ", "")
+				desc = getattr(script_ref, "description", "") or getattr(script_ref, "__doc__", "") or getattr(script_ref, "__name__", str(script_ref))
+				our_gestures_map[norm_g] = desc
 
-                g_map = getattr(plugin, "_gestureMap", {}) or {}
-                if not g_map:
-                    g_map = getattr(plugin, "_ScriptableObject__gestures", {}) or {}
+		log.info("BIOS Manager: Iniciando auditoría exhaustiva de compatibilidad y conflictos con otros complementos...")
 
-                for g_id, script_ref in g_map.items():
-                    norm_g = str(g_id).strip().lower().replace(" ", "")
-                    if norm_g in our_gestures_map:
-                        script_name = getattr(script_ref, "__name__", str(script_ref))
-                        our_feature = our_gestures_map[norm_g]
-                        collision_msg = (
-                            f"Colisión de atajo: '{norm_g}' está asignado tanto a '{our_feature}' (BIOS Manager) "
-                            f"como a '{script_name}' en el plugin '{plugin_mod}'."
-                        )
-                        conflicts.append(collision_msg)
-                        log.warning(f"BIOS Manager CONFLICTO DE ATAJO: {collision_msg}")
-        except Exception as e:
-            log.error(f"BIOS Manager: Error inspeccionando runningPlugins: {e}", exc_info=True)
+		# 1. Comprobar complementos duplicados de BIOS usando límites de palabra completa
+		try:
+			available_addons = list(addonHandler.getAvailableAddons())
+			log.info(f"BIOS Manager: Analizando {len(available_addons)} complementos disponibles en el sistema...")
+			for addon in available_addons:
+				addon_name = getattr(addon, "name", "").lower()
+				if addon_name == "biosmanager":
+					continue
 
-        # 3. Comprobar colisiones con comandos globales de NVDA
-        try:
-            import globalCommands
-            cmd_obj = getattr(globalCommands, "commands", None)
-            if cmd_obj:
-                cmd_map = getattr(cmd_obj, "_gestureMap", {}) or {}
-                for cmd_g, cmd_script in cmd_map.items():
-                    norm_cmd = str(cmd_g).strip().lower().replace(" ", "")
-                    if norm_cmd in our_gestures_map:
-                        our_feature = our_gestures_map[norm_cmd]
-                        cmd_desc = getattr(cmd_script, "description", "") or getattr(cmd_script, "__name__", str(cmd_script))
-                        collision_msg = (
-                            f"Colisión de atajo: '{norm_cmd}' está asignado simultáneamente a '{our_feature}' (BIOS Manager) "
-                            f"y al comando nativo de NVDA '{cmd_desc}'."
-                        )
-                        conflicts.append(collision_msg)
-                        log.warning(f"BIOS Manager CONFLICTO CON NVDA CORE: {collision_msg}")
-        except Exception as e:
-            log.debug(f"BIOS Manager: No se pudo verificar comandos globales nativos: {e}")
+				if getattr(addon, "isDisabled", False):
+					continue
 
-        # Resumen final en el log
-        total_issues = len(conflicts) + len(warnings)
-        if total_issues == 0:
-            log.info("BIOS Manager: Auditoría de conflictos finalizada con éxito. No se detectaron colisiones de atajos ni complementos incompatibles activos.")
-        else:
-            log.warning(
-                f"BIOS Manager: Auditoría de conflictos finalizada. Se detectaron {len(conflicts)} colisión(es) directa(s) de atajos "
-                f"y {len(warnings)} advertencia(s) de compatibilidad."
-            )
+				manifest = getattr(addon, "manifest", {}) or {}
+				summary = manifest.get("summary", "")
 
-        return conflicts, warnings
+				if re.search(r'\b(bios|uefi)\b', summary, re.IGNORECASE):
+					msg = f"Complemento con funciones similares activo: '{addon.name}' ({summary}). Podría colisionar en la gestión de firmware."
+					warnings.append(msg)
+					log.warning(f"BIOS Manager ADVERTENCIA DE COMPATIBILIDAD: {msg}")
+		except Exception as e:
+			log.error(f"BIOS Manager: No se pudo verificar la lista de complementos instalados: {e}", exc_info=True)
 
-    def _checkAddonConflicts(self, interactive=False):
-        """Revisa si otro complemento choca con este.
+		# 2. Comprobar colisiones directas de atajos con otros plugins globales
+		try:
+			running = getattr(globalPluginHandler, "runningPlugins", set())
+			log.info(f"BIOS Manager: Inspeccionando {len(running)} plugins globales activos en busca de colisiones de atajos...")
+			for plugin in running:
+				if plugin is self:
+					continue
+				plugin_mod = getattr(plugin, "__module__", str(type(plugin)))
+				if "biosmanager" in plugin_mod.lower():
+					continue
 
-        Pide la lista a auditConflicts(). Con interactive en False solo la deja
-        anotada en el registro de NVDA; así se usa al arrancar, sin molestar. Con
-        interactive en True abre un cuadro de mensaje que explica qué atajos de
-        teclado están repetidos y qué complementos podrían estorbar, o avisa de
-        que no hay ninguno.
-        """
-        conflicts, warnings = self.auditConflicts()
-        if interactive:
-            total = len(conflicts) + len(warnings)
-            if total == 0:
-                gui.messageBox(
-                    _("No se han detectado conflictos de atajos de teclado ni complementos incompatibles activos con el Gestor de BIOS."),
-                    _("Auditoría de compatibilidad - Gestor de BIOS"),
-                    wx.OK | wx.ICON_INFORMATION,
-                )
-            else:
-                lines = []
-                if conflicts:
-                    lines.append(_("COLISIONES DIRECTAS DE ATAJOS:"))
-                    for c in conflicts:
-                        lines.append(f"• {c}")
-                if warnings:
-                    if lines:
-                        lines.append("")
-                    lines.append(_("ADVERTENCIAS DE COMPATIBILIDAD:"))
-                    for w in warnings:
-                        lines.append(f"• {w}")
-                lines.append("")
-                lines.append(_("Nota: Los detalles completos también se han registrado en el archivo de log de NVDA."))
-                gui.messageBox(
-                    "\n".join(lines),
-                    _("Auditoría de compatibilidad - Gestor de BIOS"),
-                    wx.OK | wx.ICON_WARNING,
-                )
+				g_map = getattr(plugin, "_gestureMap", {}) or {}
+				if not g_map:
+					g_map = getattr(plugin, "_ScriptableObject__gestures", {}) or {}
 
-    def open_dialog(self):
-        """Abre la ventana de ajustes de la BIOS.
+				for g_id, script_ref in g_map.items():
+					norm_g = str(g_id).strip().lower().replace(" ", "")
+					if norm_g in our_gestures_map:
+						script_name = getattr(script_ref, "__name__", str(script_ref))
+						our_feature = our_gestures_map[norm_g]
+						collision_msg = (
+							f"Colisión de atajo: '{norm_g}' está asignado tanto a '{our_feature}' (BIOS Manager) "
+							f"como a '{script_name}' en el plugin '{plugin_mod}'."
+						)
+						conflicts.append(collision_msg)
+						log.warning(f"BIOS Manager CONFLICTO DE ATAJO: {collision_msg}")
+		except Exception as e:
+			log.error(f"BIOS Manager: Error inspeccionando runningPlugins: {e}", exc_info=True)
 
-        Si esa ventana ya estaba abierta se le devuelve el foco en vez de crear
-        otra. Si no, se crea. Cualquier fallo al crearla se anota en el registro
-        y se dice en voz alta, en lugar de quedarse sin respuesta.
-        """
-        log.info("BIOS Manager: Abriendo diálogo accesible de configuración de BIOS...")
-        if self._dialog and bool(self._dialog):
-            try:
-                log.info("BIOS Manager: El diálogo ya estaba abierto, trayéndolo al frente.")
-                self._dialog.Raise()
-                self._dialog.SetFocus()
-                return
-            except Exception as e:
-                log.debug(f"BIOS Manager: Diálogo previo no válido, recreando: {e}")
-                self._dialog = None
+		# 3. Comprobar colisiones con comandos globales de NVDA
+		try:
+			import globalCommands
+			cmd_obj = getattr(globalCommands, "commands", None)
+			if cmd_obj:
+				cmd_map = getattr(cmd_obj, "_gestureMap", {}) or {}
+				for cmd_g, cmd_script in cmd_map.items():
+					norm_cmd = str(cmd_g).strip().lower().replace(" ", "")
+					if norm_cmd in our_gestures_map:
+						our_feature = our_gestures_map[norm_cmd]
+						cmd_desc = getattr(cmd_script, "description", "") or getattr(cmd_script, "__name__", str(cmd_script))
+						collision_msg = (
+							f"Colisión de atajo: '{norm_cmd}' está asignado simultáneamente a '{our_feature}' (BIOS Manager) "
+							f"y al comando nativo de NVDA '{cmd_desc}'."
+						)
+						conflicts.append(collision_msg)
+						log.warning(f"BIOS Manager CONFLICTO CON NVDA CORE: {collision_msg}")
+		except Exception as e:
+			log.debug(f"BIOS Manager: No se pudo verificar comandos globales nativos: {e}")
 
-        try:
-            log.info("BIOS Manager: Instanciando BiosManagerDialog...")
-            self._dialog = BiosManagerDialog(parent=gui.mainFrame, backend=self.backend)
-            self._dialog.Show()
-            log.info("BIOS Manager: Diálogo mostrado con éxito.")
-        except Exception as e:
-            log.error(f"BIOS Manager: Error abriendo ventana de BIOS: {e}", exc_info=True)
-            ui.message(f"{_('Error al abrir la ventana de BIOS:')} {e}")
+		# Resumen final en el log
+		total_issues = len(conflicts) + len(warnings)
+		if total_issues == 0:
+			log.info("BIOS Manager: Auditoría de conflictos finalizada con éxito. No se detectaron colisiones de atajos ni complementos incompatibles activos.")
+		else:
+			log.warning(
+				f"BIOS Manager: Auditoría de conflictos finalizada. Se detectaron {len(conflicts)} colisión(es) directa(s) de atajos "
+				f"y {len(warnings)} advertencia(s) de compatibilidad."
+			)
 
-    @scriptHandler.script(
-        description=_("Abre la ventana de configuración accesible de la BIOS/UEFI."),
-        gesture="kb:nvda+shift+b",
-        speakOnDemand=True,
-        category=scriptCategory,
-    )
-    def script_openBiosManager(self, gesture: inputCore.InputGesture):
-        log.info("BIOS Manager: Atajo de apertura activado por el usuario.")
-        self.open_dialog()
+		return conflicts, warnings
 
-    @scriptHandler.script(
-        description=_("Comprueba si existen conflictos de atajos de teclado o complementos incompatibles con el Gestor de BIOS."),
-        category=scriptCategory,
-    )
-    def script_checkConflicts(self, gesture: inputCore.InputGesture):
-        log.info("BIOS Manager: Script de comprobación de conflictos ejecutado desde atajo de teclado.")
-        self._checkAddonConflicts(interactive=True)
+	def _checkAddonConflicts(self, interactive=False):
+		"""Revisa si otro complemento choca con este."""
+		conflicts, warnings = self.auditConflicts()
+		if interactive:
+			total = len(conflicts) + len(warnings)
+			if total == 0:
+				# Translators: Mensaje cuando no se detecta ningún conflicto de compatibilidad.
+				gui.messageBox(
+					_("No se han detectado conflictos de atajos de teclado ni complementos incompatibles activos con el Gestor de BIOS."),
+					# Translators: Título del cuadro de auditoría de compatibilidad.
+					_("Auditoría de compatibilidad - Gestor de BIOS"),
+					wx.OK | wx.ICON_INFORMATION,
+				)
+			else:
+				lines = []
+				if conflicts:
+					# Translators: Encabezado de la lista de colisiones de atajos detectadas.
+					lines.append(_("COLISIONES DIRECTAS DE ATAJOS:"))
+					for c in conflicts:
+						lines.append(f"• {c}")
+				if warnings:
+					if lines:
+						lines.append("")
+					# Translators: Encabezado de la lista de advertencias de compatibilidad.
+					lines.append(_("ADVERTENCIAS DE COMPATIBILIDAD:"))
+					for w in warnings:
+						lines.append(f"• {w}")
+				lines.append("")
+				# Translators: Nota aclaratoria al final del informe de auditoría.
+				lines.append(_("Nota: Los detalles completos también se han registrado en el archivo de log de NVDA."))
+				gui.messageBox(
+					"\n".join(lines),
+					# Translators: Título del cuadro de advertencia de compatibilidad.
+					_("Auditoría de compatibilidad - Gestor de BIOS"),
+					wx.OK | wx.ICON_WARNING,
+				)
 
-    @scriptHandler.script(
-        description=_("Reinicia el equipo directamente en la pantalla de configuración del firmware UEFI."),
-        category=scriptCategory,
-    )
-    def script_rebootToUefi(self, gesture: inputCore.InputGesture):
-        log.info("BIOS Manager: Script de reinicio a UEFI ejecutado desde atajo de teclado.")
-        if gui.messageBox(
-            _("¿Seguro que deseas reiniciar el equipo ahora mismo para acceder a la BIOS / UEFI?"),
-            _("Reiniciar a UEFI - Gestor de BIOS"),
-            wx.YES_NO | wx.ICON_QUESTION
-        ) == wx.YES:
-            ok, msg = self.backend.reboot_to_uefi()
-            if not ok:
-                ui.message(msg)
+	def open_dialog(self):
+		"""Abre la ventana de ajustes de la BIOS."""
+		log.info("BIOS Manager: Abriendo diálogo accesible de configuración de BIOS...")
+		if self._dialog and bool(self._dialog):
+			try:
+				log.info("BIOS Manager: El diálogo ya estaba abierto, trayéndolo al frente.")
+				self._dialog.Raise()
+				self._dialog.SetFocus()
+				return
+			except Exception as e:
+				log.debug(f"BIOS Manager: Diálogo previo no válido, recreando: {e}")
+				self._dialog = None
+
+		try:
+			log.info("BIOS Manager: Instanciando BiosManagerDialog...")
+			self._dialog = BiosManagerDialog(parent=gui.mainFrame, backend=self.backend)
+			self._dialog.Show()
+			log.info("BIOS Manager: Diálogo mostrado con éxito.")
+		except Exception as e:
+			log.error(f"BIOS Manager: Error abriendo ventana de BIOS: {e}", exc_info=True)
+			# Translators: Mensaje cuando falla la apertura de la ventana de configuración de la BIOS.
+			ui.message(_("Error al abrir la ventana de BIOS: {error}").format(error=e))
+
+	@scriptHandler.script(
+		# Translators: Descripción del script para abrir la configuración accesible de la BIOS/UEFI.
+		description=_("Abre la ventana de configuración accesible de la BIOS/UEFI."),
+		speakOnDemand=True,
+		category=scriptCategory,
+	)
+	def script_openBiosManager(self, gesture: inputCore.InputGesture):
+		log.info("BIOS Manager: Script de apertura ejecutado.")
+		self.open_dialog()
+
+	@scriptHandler.script(
+		# Translators: Descripción del script para comprobar conflictos con otros complementos.
+		description=_("Comprueba si existen conflictos de atajos de teclado o complementos incompatibles con el Gestor de BIOS."),
+		category=scriptCategory,
+	)
+	def script_checkConflicts(self, gesture: inputCore.InputGesture):
+		log.info("BIOS Manager: Script de comprobación de conflictos ejecutado desde atajo de teclado.")
+		self._checkAddonConflicts(interactive=True)
+
+	@scriptHandler.script(
+		# Translators: Descripción del script para reiniciar el equipo en la configuración UEFI.
+		description=_("Reinicia el equipo directamente en la pantalla de configuración del firmware UEFI."),
+		category=scriptCategory,
+	)
+	def script_rebootToUefi(self, gesture: inputCore.InputGesture):
+		log.info("BIOS Manager: Script de reinicio a UEFI ejecutado desde atajo de teclado.")
+		# Translators: Pregunta de confirmación antes de reiniciar el equipo para entrar a UEFI.
+		pregunta = _("¿Seguro que deseas reiniciar el equipo ahora mismo para acceder a la BIOS / UEFI?")
+		# Translators: Título del diálogo de confirmación para reiniciar a UEFI.
+		titulo = _("Reiniciar a UEFI - Gestor de BIOS")
+		if gui.messageBox(pregunta, titulo, wx.YES_NO | wx.ICON_QUESTION) == wx.YES:
+			ok, msg = self.backend.reboot_to_uefi()
+			if not ok:
+				ui.message(msg)

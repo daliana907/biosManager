@@ -397,6 +397,71 @@ msgstr "Changes discarded."
 msgid "El sistema se reiniciará en la BIOS / UEFI en 2 segundos."
 msgstr "The system will restart into the BIOS / UEFI in 2 seconds."
 
+#: biosManager/globalPlugins/biosManager/__init__.py
+msgid "&Reiniciar en la configuración de UEFI / BIOS..."
+msgstr "&Reboot to UEFI / BIOS settings..."
+
+#: biosManager/globalPlugins/biosManager/__init__.py
+msgid "Reinicia el equipo directamente en la pantalla de configuración del firmware UEFI"
+msgstr "Reboots the computer directly into UEFI firmware setup"
+
+#: biosManager/globalPlugins/biosManager/__init__.py
+msgid "No se pudo abrir la documentación del complemento."
+msgstr "Could not open add-on documentation."
+
+#: biosManager/globalPlugins/biosManager/__init__.py
+msgid "Documentación - Gestor de BIOS"
+msgstr "Documentation - BIOS Manager"
+
+#: biosManager/globalPlugins/biosManager/__init__.py
+#, python-brace-format
+msgid "Error al abrir la ventana de BIOS: {error}"
+msgstr "Error opening BIOS window: {error}"
+
+#: biosManager/globalPlugins/biosManager/dialog.py
+msgid "&Filtrar"
+msgstr "&Filter"
+
+#: biosManager/globalPlugins/biosManager/dialog.py
+#, python-brace-format
+msgid "Ajuste: {nombre}"
+msgstr "Setting: {nombre}"
+
+#: biosManager/globalPlugins/biosManager/dialog.py
+#, python-brace-format
+msgid "Valor actual en sistema: {valor}"
+msgstr "Current value in system: {valor}"
+
+#: biosManager/globalPlugins/biosManager/dialog.py
+#, python-brace-format
+msgid "(Cambio pendiente: {cambio})"
+msgstr "(Pending change: {cambio})"
+
+#: biosManager/globalPlugins/biosManager/dialog.py
+#, python-brace-format
+msgid "Quedaría así: {orden}"
+msgstr "Would be like this: {orden}"
+
+#: biosManager/globalPlugins/biosManager/dialog.py
+#, python-brace-format
+msgid "El ajuste {ajuste} ya tiene ese valor en el sistema."
+msgstr "Setting {ajuste} already has that value in the system."
+
+#: biosManager/globalPlugins/biosManager/dialog.py
+#, python-brace-format
+msgid "Pendiente: {ajuste} a {valor}"
+msgstr "Pending: {ajuste} to {valor}"
+
+#: biosManager/globalPlugins/biosManager/wmi_backend.py
+#, python-brace-format
+msgid "No se pudo iniciar el reinicio a UEFI ({error}). Puede requerir ejecutar NVDA como Administrador."
+msgstr "Could not initiate reboot to UEFI ({error}). It may require running NVDA as Administrator."
+
+#: biosManager/globalPlugins/biosManager/wmi_backend.py
+#, python-brace-format
+msgid "Error al ejecutar comando de reinicio: {error}"
+msgstr "Error executing reboot command: {error}"
+
 #~ msgid "&Aceptar y Guardar en BIOS"
 #~ msgstr "&Accept and Save to BIOS"
 

@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
-# Backend WMI para el complemento BIOS Manager de NVDA.
-# Soporte para Lenovo WMI BIOS (ThinkPad, ThinkCentre, etc.) y reinicio a UEFI.
+# biosManager: Complemento para gestionar parámetros de BIOS/UEFI en NVDA
+# Copyright (C) 2026 Daliana
+# Este archivo está cubierto por la Licencia Pública General de GNU (GPLv2).
+# Consulta el archivo LICENSE para más detalles.
 
 import os
 import subprocess
@@ -233,6 +235,7 @@ $results | ConvertTo-Json -Compress
 		"""
 		if not settings_dict:
 			log.info("BIOS Manager: apply_settings invocado sin cambios pendientes.")
+			# Translators: Mensaje cuando no hay cambios pendientes que aplicar en la BIOS.
 			return True, _("No hay cambios")
 		log.info(f"BIOS Manager: apply_settings iniciado para {len(settings_dict)} ajustes: {settings_dict}")
 
@@ -292,6 +295,7 @@ foreach ($r in $resultados) {
 		ok, salida = self._ejecutarPowerShellElevado(ps_script, esperarSalida=True)
 		if salida is None:
 			log.error("BIOS Manager: No hubo respuesta al aplicar los ajustes.")
+			# Translators: Mensaje de error cuando no se pudo aplicar ningún cambio a la BIOS.
 			return False, _("No se pudo aplicar ningún cambio. Puede que se cancelara el aviso de permisos de administrador.")
 
 		log.info(f"BIOS Manager: Respuesta de la BIOS al aplicar: {salida.strip()[:1000]}")
@@ -299,6 +303,7 @@ foreach ($r in $resultados) {
 			datos = json.loads(salida)
 		except ValueError:
 			log.error("BIOS Manager: No se pudo interpretar la respuesta de la BIOS.", exc_info=True)
+			# Translators: Mensaje de error cuando la respuesta de la BIOS no tiene formato válido.
 			return False, _("La BIOS respondió algo que no se pudo interpretar. Mira el registro de NVDA para el detalle.")
 
 		return self._informeDeCambios(datos, settings_dict)
@@ -314,6 +319,7 @@ foreach ($r in $resultados) {
 		partes = [d.strip() for d in texto.split(":") if d.strip()]
 		if len(partes) < 3:
 			return texto
+		# Translators: Resumen corto de un orden de arranque con muchos dispositivos.
 		return _("primero {dispositivo}, de {total} dispositivos").format(dispositivo=partes[0], total=len(partes))
 
 	@staticmethod
@@ -332,8 +338,10 @@ foreach ($r in $resultados) {
 			respuesta = (ajuste.get("SetResult") or "").strip()
 			actual = ajuste.get("Current")
 			if actual is not None and actual == pedido:
+				# Translators: Notificación de confirmación de un ajuste de BIOS aplicado con éxito.
 				lineas.append(_("{ajuste}: confirmado, {valor}.").format(ajuste=nombre, valor=WmiBackend._valorLegible(pedido)))
 			elif respuesta.lower().startswith("success"):
+				# Translators: Notificación cuando un ajuste fue aceptado pero el cambio requiere reinicio.
 				lineas.append(
 					_("{ajuste}: la BIOS aceptó el cambio a {pedido}, pero todavía figura como "
 					  "{actual}. Puede que haga falta reiniciar.").format(
@@ -342,7 +350,10 @@ foreach ($r in $resultados) {
 				)
 			else:
 				todoCorrecto = False
-				motivo = respuesta if respuesta else _("la BIOS no dio ninguna respuesta")
+				# Translators: Texto por defecto cuando la BIOS no da respuesta sobre un ajuste.
+				sinResp = _("la BIOS no dio ninguna respuesta")
+				motivo = respuesta if respuesta else sinResp
+				# Translators: Notificación cuando un ajuste de BIOS no pudo aplicarse.
 				lineas.append(_("{ajuste}: no se aplicó. Motivo: {motivo}. Sigue en {valor}.").format(ajuste=nombre, motivo=motivo, valor=WmiBackend._valorLegible(actual)))
 
 		nombresInformados = {a.get("Name") for a in ajustes}
@@ -350,18 +361,22 @@ foreach ($r in $resultados) {
 		for nombre in settings_dict:
 			if nombre not in nombresInformados:
 				todoCorrecto = False
+				# Translators: Notificación cuando la BIOS no devuelve información sobre un ajuste pedido.
 				lineas.append(_("{ajuste}: la BIOS no informó nada sobre este ajuste.").format(ajuste=nombre))
 
 		guardado = (datos.get("SaveResult") or "").strip()
 		if not guardado.lower().startswith("success"):
 			todoCorrecto = False
-			lineas.append(_("Al grabar los cambios en la BIOS: {resultado}.").format(resultado=guardado or _("sin respuesta")))
+			# Translators: Texto cuando la BIOS no responde al grabar los cambios.
+			sinRespGuardar = _("sin respuesta")
+			# Translators: Notificación con el resultado del guardado permanente de ajustes en la BIOS.
+			lineas.append(_("Al grabar los cambios en la BIOS: {resultado}.").format(resultado=guardado or sinRespGuardar))
 
 		return todoCorrecto, "\n".join(lineas)
 
 	def discard_settings(self) -> Tuple[bool, str]:
 		"""
-		Descarta los cambios pendientes de la sesión actual usando PowerShell.
+		Descarta los cambios pendientes de la sesión actual usando PowerShell si hiciera falta.
 		"""
 		try:
 			cmd = "(Get-CimInstance -Namespace root\\wmi -ClassName Lenovo_DiscardBiosSettings | Invoke-CimMethod -MethodName DiscardBiosSettings -Arguments @{Parameter=''}).return"
@@ -370,11 +385,13 @@ foreach ($r in $resultados) {
 			if res.returncode == 0:
 				ret_val = res.stdout.strip()
 				if ret_val.lower() == "success":
+					# Translators: Mensaje cuando se descartan cambios pendientes.
 					return True, _("Cambios descartados.")
 				return False, f"La BIOS devolvió: {ret_val}"
 			return False, f"Error PS: {res.stderr.strip()}"
 		except subprocess.TimeoutExpired:
 			log.error("BIOS Manager: la BIOS no respondió al descartar los cambios.")
+			# Translators: Mensaje de error cuando la BIOS no responde al descartar cambios.
 			return False, _("La BIOS no respondió. Los cambios pueden seguir pendientes.")
 		except Exception as e:
 			return False, f"Excepción: {e}"
@@ -396,11 +413,14 @@ foreach ($r in $resultados) {
 			)
 			log.info(f"BIOS Manager: Comando shutdown ejecutado. Código retorno={res.returncode}, salida='{res.stdout.strip()}', error='{res.stderr.strip()}'")
 			if res.returncode == 0:
+				# Translators: Mensaje que avisa del reinicio inminente del sistema a UEFI/BIOS.
 				return True, _("El sistema se reiniciará en la BIOS / UEFI en 2 segundos.")
 			else:
 				err = res.stderr.strip() or res.stdout.strip()
 				log.warning(f"BIOS Manager: Falló shutdown /r /fw: {err}")
-				return False, f"No se pudo iniciar el reinicio a UEFI ({err}). Puede requerir ejecutar NVDA como Administrador."
+				# Translators: Mensaje cuando falla el comando de reinicio al firmware UEFI.
+				return False, _("No se pudo iniciar el reinicio a UEFI ({error}). Puede requerir ejecutar NVDA como Administrador.").format(error=err)
 		except Exception as e:
 			log.error(f"BIOS Manager: Error ejecutando comando de reinicio a UEFI: {e}", exc_info=True)
-			return False, f"Error al ejecutar comando de reinicio: {e}"
+			# Translators: Mensaje cuando ocurre una excepción ejecutando el comando de reinicio.
+			return False, _("Error al ejecutar comando de reinicio: {error}").format(error=e)

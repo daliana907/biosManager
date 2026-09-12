@@ -1,25 +1,27 @@
+# -*- coding: utf-8 -*-
+# Gestor de BIOS y UEFI para NVDA
+# Copyright (C) 2026 Daliana
+# Released under the GNU General Public License version 2 (GPLv2)
+
 import os
 import tempfile
-from logHandler import log
 
 def onInstall():
-	log.info("BIOS Manager: instalación completada.")
+	pass
 
 def onUninstall():
-	log.info("BIOS Manager: desinstalación completada.")
-	try:
-		tmp = tempfile.gettempdir()
-		files_to_remove = [
-			"nvda_bios_preload.ps1",
-			"nvda_bios_preload_out.json",
-			"nvda_bios_launcher.ps1",
-			"nvda_bios_apply.ps1",
-			"nvda_bios_apply_launcher.ps1"
-		]
-		for f in files_to_remove:
-			p = os.path.join(tmp, f)
+	tmp = tempfile.gettempdir()
+	files_to_remove = [
+		"nvda_bios_preload.ps1",
+		"nvda_bios_preload_out.json",
+		"nvda_bios_launcher.ps1",
+		"nvda_bios_apply.ps1",
+		"nvda_bios_apply_launcher.ps1"
+	]
+	for f in files_to_remove:
+		p = os.path.join(tmp, f)
+		try:
 			if os.path.exists(p):
 				os.remove(p)
-		log.info("BIOS Manager: archivos temporales eliminados correctamente.")
-	except Exception as e:
-		log.warning(f"BIOS Manager: error al limpiar rastros: {e}")
+		except OSError:
+			pass

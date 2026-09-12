@@ -55,7 +55,9 @@ def instalar():
             getCodeAddon=lambda: _Cualquiera(),
             getLanguage=lambda: "es")
     _modulo("logHandler", log=_Cualquiera())
-    _modulo("globalPluginHandler", GlobalPlugin=type("GlobalPlugin", (), {}))
+    _modulo("globalPluginHandler",
+            GlobalPlugin=type("GlobalPlugin", (), {}),
+            ActionCancelled=type("ActionCancelled", (Exception,), {}))
     _modulo("scriptHandler",
             script=lambda **k: (lambda f: f),
             getLastScriptRepeatCount=lambda: 0)

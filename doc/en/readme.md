@@ -1,36 +1,51 @@
 # BIOS / UEFI Manager for NVDA
 
-This add-on allows blind and visually impaired users to check and change BIOS/UEFI firmware settings directly from Windows using NVDA.
+This add-on allows blind and visually impaired users to check and change UEFI firmware settings directly from Windows using NVDA.
 
 ### Why this add-on exists
-Traditional BIOS setup screens load before Windows starts. They are purely visual and lack speech support, making them inaccessible without sighted help. This add-on brings those settings into an accessible Windows dialog where NVDA can read and configure them smoothly.
+Traditional firmware setup screens load before Windows starts. They are purely visual and lack speech support, making them inaccessible without sighted help. This add-on brings those settings into an accessible Windows dialog where NVDA can read and configure them smoothly.
+
+### Legacy BIOS vs. UEFI
+Legacy BIOS cannot be configured or controlled from the operating system once booted. Modern UEFI firmware allows communication and configuration through the Windows WMI interface. Therefore, this add-on works exclusively on systems running modern UEFI firmware and will not work on legacy BIOS machines or when Compatibility Support Module (CSM) legacy emulation is enabled.
 
 ### Supported Computers
 - Supported: Lenovo business line computers (ThinkPad laptops, ThinkCentre desktops, ThinkStation workstations) with Lenovo WMI support.
 - Not supported: Custom-built desktop PCs and consumer laptops without vendor WMI firmware support. If run on an unsupported system, the add-on will notify you safely.
 
-### Is it safe?
-Yes, completely safe:
-- It uses Lenovo official WMI interfaces.
-- The motherboard validates every change before saving it, preventing firmware corruption.
-- Settings are stored in the motherboard NVRAM, surviving operating system reinstallations.
-- Administrator elevation (UAC prompt) is only requested when you click OK to write your confirmed changes.
+### Security and Responsible Use
+Firmware configuration controls low-level hardware behavior:
+- **Boot order:** Modifying boot devices or their order can prevent Windows from starting.
+- **Security & Virtualization:** Altering options such as Secure Boot, TPM, passwords, or CPU virtualization (VT-x / AMD-V) may affect drive encryption (e.g., BitLocker) or virtual machines. Only modify settings you understand.
+- **Secure mode enforcement:** The add-on blocks execution on secure screens (e.g. UAC dialogs or lock screen) to prevent unauthorized high-privilege operations.
 
-### How to use
-1. Open NVDA Menu (NVDA + N) > Tools > BIOS and UEFI Manager > BIOS / UEFI Settings (or press NVDA + Shift + B directly).
-2. Browse the list of settings on the left or use the search box to find a setting quickly.
-3. On the right panel, change the option using standard combo boxes or edit fields.
-4. Click Add to pending changes.
-5. Click OK, accept the Windows UAC prompt, and restart your computer when convenient for the changes to take effect.
+### Commands and Shortcuts
+To prevent conflicts with native NVDA commands (such as `NVDA + Shift + B` for battery status), this add-on does not assign any default keyboard shortcut.
+
+All features are accessible from the NVDA menu and can be assigned custom shortcuts:
+- **NVDA Menu > Tools > BIOS and UEFI Manager:**
+  - *BIOS / UEFI Settings...:* Opens the configuration dialog.
+  - *Reboot to UEFI / BIOS settings...:* Reboots the machine directly into UEFI firmware setup.
+  - *Check conflicts with other add-ons...:* Checks for colliding shortcuts or duplicate firmware add-ons.
+  - *Documentation:* Opens this help guide.
+- **Custom gestures:** Assign your preferred shortcuts in NVDA Menu > Preferences > Input Gestures under the "BIOS and UEFI Manager" category.
+- **Inside the settings dialog:**
+  - *Search:* Type your search query and press `Enter` or click the *Filter* button.
+  - *Boot order:* Select a device and press `Alt + Up Arrow` or `Alt + Down Arrow` (or click *Move up* / *Move down*) to adjust its position.
+  - *Apply and Cancel:* Click *OK* (or press Enter) to write pending changes to UEFI, or *Cancel* (or Escape) to dismiss changes and close.
 
 ## What's new in 1.7 (12 September 2026)
 
-### Improved
+### Security and Compatibility
 
-- Switched to NVDA's native logging framework (`logHandler.log`) so diagnostic and warning messages integrate directly with NVDA's Log Viewer.
-- Clean teardown of Tools menu items on addon termination or reload, releasing UI resources cleanly.
-- The documentation menu item automatically detects NVDA's active language and opens the Spanish or English guide accordingly.
-- The settings dialog now implements standard affirmative and escape IDs (`wx.ID_OK`, `wx.ID_CANCEL`) for native Enter/Escape keyboard navigation.
+- Prevents loading in NVDA secure mode / secure screens to eliminate privilege escalation risks.
+- Removed default keyboard shortcut to avoid overriding NVDA's native battery status command.
+- Added a Tools menu option to reboot directly into UEFI firmware setup.
+- Uses NVDA's official API (`openDocumentation()`) to open documentation according to the active language.
+- Conflict detection regex now uses word boundary matching to eliminate false positives on words like "cambios".
+- Dynamic month and leap-year validation for BIOS date settings (1970-2037).
+- Signed 32-bit integer range (-2147483648 to 2147483647) for numeric spin controls.
+- Settings with available options are correctly treated as dropdowns even when their current value is empty.
+- Canceling the dialog no longer triggers unnecessary WMI calls.
 
 ## What's new in 1.6 (8 September 2026)
 

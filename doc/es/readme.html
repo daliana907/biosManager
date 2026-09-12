@@ -15,41 +15,64 @@
 <h1>Gestor de BIOS y UEFI para NVDA</h1>
 <p>Autora: Daliana | Versión 1.7 | Compatible con NVDA 2023.1 en adelante</p>
 
-<p>Este complemento te permite consultar y modificar las opciones de la BIOS y UEFI de tu equipo directamente desde Windows con NVDA, sin tener que reiniciar para entrar a ciegas al menú del fabricante.</p>
+<p>Este complemento te permite consultar y modificar las opciones del firmware UEFI de tu equipo directamente desde Windows con NVDA, de forma totalmente accesible.</p>
+
+<h2>Diferencia entre BIOS clásica y UEFI</h2>
+<p>Es importante distinguir entre la BIOS heredada y el firmware UEFI moderno:</p>
+<ul>
+  <li>La BIOS heredada (Legacy BIOS) no se puede controlar ni modificar desde el sistema operativo una vez iniciado.</li>
+  <li>El firmware UEFI moderno sí permite la comunicación y lectura/escritura de variables de configuración mediante la interfaz WMI de Windows.</li>
+  <li>Por tanto, este complemento funciona exclusivamente en sistemas con firmware UEFI nativo. No funcionará en equipos antiguos con BIOS clásica ni en equipos con el módulo de emulación heredada (CSM) activo.</li>
+</ul>
 
 <h2>Equipos compatibles</h2>
 <ul>
   <li>Computadoras Lenovo de gama profesional: portátiles ThinkPad, computadoras de escritorio ThinkCentre y estaciones de trabajo ThinkStation.</li>
-  <li>En computadoras armadas por piezas o portátiles sin soporte del fabricante, el complemento avisará de forma segura que no encontró comunicación con la BIOS.</li>
+  <li>En computadoras armadas por piezas o portátiles sin soporte WMI del fabricante, el complemento avisará de forma clara y segura que no encontró soporte.</li>
 </ul>
-
-<h2>Cómo usar el complemento</h2>
-<ol>
-  <li>Abre el menú NVDA (NVDA + N), ve a Herramientas, entra en Gestor de BIOS y UEFI y elige Configuración de la BIOS / UEFI (o presiona directamente el atajo NVDA + Shift + B).</li>
-  <li>Espera unos segundos a que cargue la lista. A la izquierda tendrás todas las opciones disponibles (puedes escribir en el cuadro de búsqueda para filtrar).</li>
-  <li>A la derecha podrás cambiar el valor usando las flechas en los cuadros desplegables o escribiendo según la opción.</li>
-  <li>Pulsa el botón Añadir a cambios pendientes.</li>
-  <li>Cuando hayas terminado tus cambios, pulsa Aceptar y confirma la ventana de permisos de Windows. Los cambios se aplicarán la próxima vez que reinicies la PC.</li>
-</ol>
 
 <div class="nota">
-  <strong>Seguridad:</strong> El complemento se comunica mediante los canales oficiales de Lenovo (WMI). Si un valor no es válido para tu modelo, la propia placa base lo rechaza, evitando que el equipo sufra cualquier daño.
+  <strong>Advertencias de seguridad y uso responsable:</strong>
+  <ul>
+    <li><strong>Orden de arranque:</strong> Modificar los dispositivos de arranque o deshabilitar unidades puede impedir que Windows inicie con normalidad.</li>
+    <li><strong>Seguridad y virtualización:</strong> Alterar opciones como Secure Boot, TPM, contraseñas de arranque o virtualización (VT-x / AMD-V) puede afectar al cifrado de unidad (BitLocker) o a la integridad del arranque. Modifica únicamente los parámetros que conozcas.</li>
+    <li><strong>Bloqueo en pantallas seguras:</strong> Por motivos de seguridad, el complemento bloquea automáticamente su ejecución en pantallas seguras de Windows para evitar operaciones no autorizadas con privilegios elevados.</li>
+  </ul>
 </div>
 
-<h2>Opciones en el menú Herramientas</h2>
+<h2>Opciones del menú Herramientas y atajos de teclado</h2>
+<p>El complemento no asigna ningún atajo de teclado por defecto para evitar pisar comandos nativos de NVDA (como el atajo de estado de batería NVDA+Shift+B). Todas las funciones son accesibles desde el menú y configurables:</p>
 <ul>
-  <li>Configuración de la BIOS / UEFI: Abre la ventana principal de ajustes.</li>
-  <li>Comprobar conflictos con otros complementos: Revisa si hay algún otro complemento que use los mismos atajos o funciones.</li>
-  <li>Documentación: Abre este manual de ayuda.</li>
+  <li><strong>Configuración de la BIOS / UEFI...:</strong> Abre la ventana principal de ajustes.</li>
+  <li><strong>Reiniciar en la configuración de UEFI / BIOS...:</strong> Reinicia el equipo directamente en la pantalla de configuración del firmware UEFI.</li>
+  <li><strong>Comprobar conflictos con otros complementos...:</strong> Diagnostica colisiones de atajos de teclado o complementos duplicados.</li>
+  <li><strong>Documentación:</strong> Abre este manual de ayuda mediante la API oficial de NVDA.</li>
+  <li><strong>Asignación de atajos:</strong> Puedes definir tus propios atajos desde el menú de NVDA &gt; Preferencias &gt; Gestos de entrada, categoría "Gestor de BIOS y UEFI".</li>
 </ul>
 
+<h2>Cómo usar la ventana de configuración</h2>
+<ol>
+  <li>Abre la ventana desde el menú Herramientas. Espera unos segundos a que cargue la lista.</li>
+  <li>Escribe en el cuadro de búsqueda y pulsa <code>Intro</code> o el botón <em>Filtrar</em> para buscar un ajuste. Pulsa <em>Limpiar</em> para restablecer.</li>
+  <li>A la derecha podrás modificar el valor según su tipo (desplegables, fecha con validación de año y mes, hora, número con rango de 32 bits con signo o texto).</li>
+  <li>En el orden de arranque, selecciona un dispositivo y pulsa <code>Alt + Flecha Arriba</code> o <code>Alt + Flecha Abajo</code> (o los botones <em>Subir</em> y <em>Bajar</em>) para reordenarlo.</li>
+  <li>Pulsa el botón <em>Añadir a cambios pendientes</em>.</li>
+  <li>Pulsa <em>Aceptar</em> (o Intro) y confirma la ventana de permisos de Windows para aplicar los cambios en la placa base, o <em>Cancelar</em> (o Escape) para descartarlos en memoria y cerrar.</li>
+</ol>
+
 <h2>Novedades de la versión 1.7 (12 de septiembre de 2026)</h2>
-<h3>Mejorado</h3>
+<h3>Seguridad y compatibilidad</h3>
 <ul>
-  <li>Registro técnico integrado directamente con nvda.log mediante el sistema nativo logHandler.</li>
-  <li>Limpieza completa del submenú en el menú Herramientas al desactivar o recargar complementos.</li>
-  <li>Detección automática del idioma del usuario al abrir el manual de ayuda desde el menú (español o inglés).</li>
-  <li>Soporte nativo de las teclas Escape para cancelar e Intro para confirmar en la ventana de configuración.</li>
+  <li>Anulación automática de la carga en modo seguro / pantallas seguras de NVDA para prevenir riesgos de seguridad.</li>
+  <li>Eliminación del atajo por defecto para no interferir con la función nativa de lectura de batería de NVDA.</li>
+  <li>Opción en el menú Herramientas para reiniciar el sistema en la configuración de UEFI.</li>
+  <li>Apertura de documentación mediante la API oficial de NVDA (openDocumentation).</li>
+  <li>Filtro de búsqueda manual mediante botón Filtrar o tecla Intro.</li>
+  <li>Validación dinámica del día del mes en el editor de fechas (rango 1970-2037 y días ajustados al mes y bisiesto).</li>
+  <li>Rango de 32 bits con signo en controles de edición numérica.</li>
+  <li>Detección de ajustes con opciones cuando su valor por defecto es una cadena vacía.</li>
+  <li>Auditoría de conflictos con límites de palabras para evitar falsos positivos con palabras como "cambios".</li>
+  <li>Cancelación de ventana sin llamadas innecesarias a la BIOS.</li>
 </ul>
 
 <h2>Novedades de la versión 1.6 (8 de septiembre de 2026)</h2>
