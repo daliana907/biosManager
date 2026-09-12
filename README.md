@@ -3,13 +3,13 @@
 [![Pruebas](https://github.com/daliana907/biosManager/actions/workflows/pruebas.yml/badge.svg)](https://github.com/daliana907/biosManager/actions/workflows/pruebas.yml)
 
 Autora: Daliana
-Versión: 1.7
+Versión: 1.8
 Compatibilidad: NVDA 2023.1 en adelante
 Licencia: GNU GPL v2
 
 [Read in English below](#english-version)
 
-[Descargar biosManager 1.7 (.nvda-addon)](https://github.com/daliana907/biosManager/releases/latest/download/biosManager-1.7.nvda-addon) · [Registro de cambios](CHANGELOG.md)
+[Descargar biosManager 1.7 (.nvda-addon)](https://github.com/daliana907/biosManager/releases/latest/download/biosManager-1.8.nvda-addon) · [Registro de cambios](CHANGELOG.md)
 
 ---
 
