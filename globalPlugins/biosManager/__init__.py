@@ -68,17 +68,9 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 				_("Comprueba si existen conflictos de atajos de teclado o complementos incompatibles con el Gestor de BIOS")
 			)
 
-			# Translators: Opción del menú para consultar la documentación.
-			self._itemDoc = self._subMenu.Append(
-				wx.ID_ANY,
-				_("&Documentación"),
-				_("Abre la ayuda y documentación del Gestor de BIOS")
-			)
-
 			gui.mainFrame.sysTrayIcon.Bind(wx.EVT_MENU, self._on_menu_open, self._itemConfig)
 			gui.mainFrame.sysTrayIcon.Bind(wx.EVT_MENU, self._on_menu_reboot, self._itemReboot)
 			gui.mainFrame.sysTrayIcon.Bind(wx.EVT_MENU, self._on_menu_conflicts, self._itemConflicts)
-			gui.mainFrame.sysTrayIcon.Bind(wx.EVT_MENU, self._on_menu_doc, self._itemDoc)
 
 			# Translators: Nombre del submenú en el menú Herramientas de NVDA.
 			self._subMenuItem = self._toolsMenu.AppendSubMenu(
@@ -111,8 +103,6 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 				gui.mainFrame.sysTrayIcon.Unbind(wx.EVT_MENU, source=self._itemReboot)
 			if hasattr(self, "_itemConflicts") and self._itemConflicts:
 				gui.mainFrame.sysTrayIcon.Unbind(wx.EVT_MENU, source=self._itemConflicts)
-			if hasattr(self, "_itemDoc") and self._itemDoc:
-				gui.mainFrame.sysTrayIcon.Unbind(wx.EVT_MENU, source=self._itemDoc)
 			if hasattr(self, "_subMenuItem") and self._subMenuItem:
 				try:
 					self._toolsMenu.DestroyItem(self._subMenuItem)
@@ -135,22 +125,6 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 	def _on_menu_conflicts(self, event):
 		log.info("BIOS Manager: Opción 'Comprobar conflictos' seleccionada en el menú.")
 		wx.CallAfter(self._checkAddonConflicts, interactive=True)
-
-	def _on_menu_doc(self, event):
-		try:
-			addon = addonHandler.getCodeAddon()
-			if addon:
-				addon.openDocumentation()
-				return
-		except Exception as e:
-			log.warning(f"BIOS Manager: Error abriendo documentación mediante API de NVDA: {e}")
-		# Translators: Mensaje de error si no se encuentra la documentación del complemento.
-		gui.messageBox(
-			_("No se pudo abrir la documentación del complemento."),
-			# Translators: Título del diálogo de error al abrir la documentación.
-			_("Documentación - Gestor de BIOS"),
-			wx.OK | wx.ICON_ERROR,
-		)
 
 	def _startupBackgroundWorker(self):
 		try:
