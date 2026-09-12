@@ -152,9 +152,18 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
         conflicts = []
         warnings = []
 
-        our_gestures_map = {
+        default_map = {
             "kb:nvda+shift+b": _("Apertura de la ventana del Gestor de BIOS / UEFI"),
         }
+        our_gestures_map = {}
+        g_map = getattr(self, "_gestureMap", {}) or {}
+        if g_map:
+            for g_id, script_ref in g_map.items():
+                norm_g = str(g_id).strip().lower().replace(" ", "")
+                desc = getattr(script_ref, "description", "") or getattr(script_ref, "__doc__", "") or default_map.get(norm_g, getattr(script_ref, "__name__", str(script_ref)))
+                our_gestures_map[norm_g] = desc
+        else:
+            our_gestures_map = default_map
 
         log.info("BIOS Manager: Iniciando auditoría exhaustiva de compatibilidad y conflictos con otros complementos...")
 
@@ -208,6 +217,26 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
                         log.warning(f"BIOS Manager CONFLICTO DE ATAJO: {collision_msg}")
         except Exception as e:
             log.error(f"BIOS Manager: Error inspeccionando runningPlugins: {e}", exc_info=True)
+
+        # 3. Comprobar colisiones con comandos globales de NVDA
+        try:
+            import globalCommands
+            cmd_obj = getattr(globalCommands, "commands", None)
+            if cmd_obj:
+                cmd_map = getattr(cmd_obj, "_gestureMap", {}) or {}
+                for cmd_g, cmd_script in cmd_map.items():
+                    norm_cmd = str(cmd_g).strip().lower().replace(" ", "")
+                    if norm_cmd in our_gestures_map:
+                        our_feature = our_gestures_map[norm_cmd]
+                        cmd_desc = getattr(cmd_script, "description", "") or getattr(cmd_script, "__name__", str(cmd_script))
+                        collision_msg = (
+                            f"Colisión de atajo: '{norm_cmd}' está asignado simultáneamente a '{our_feature}' (BIOS Manager) "
+                            f"y al comando nativo de NVDA '{cmd_desc}'."
+                        )
+                        conflicts.append(collision_msg)
+                        log.warning(f"BIOS Manager CONFLICTO CON NVDA CORE: {collision_msg}")
+        except Exception as e:
+            log.debug(f"BIOS Manager: No se pudo verificar comandos globales nativos: {e}")
 
         # Resumen final en el log
         total_issues = len(conflicts) + len(warnings)
