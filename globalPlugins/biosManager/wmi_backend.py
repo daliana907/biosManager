@@ -14,7 +14,11 @@ from typing import List, Dict, Tuple
 
 addonHandler.initTranslation()
 
-log = logging.getLogger(__name__)
+try:
+	from logHandler import log
+except ImportError:
+	import logging
+	log = logging.getLogger(__name__)
 
 
 class WmiBackend:

@@ -23,6 +23,15 @@ Yes, completely safe:
 4. Click Add to pending changes.
 5. Click OK, accept the Windows UAC prompt, and restart your computer when convenient for the changes to take effect.
 
+## What's new in 1.7 (12 September 2026)
+
+### Improved
+
+- Switched to NVDA's native logging framework (`logHandler.log`) so diagnostic and warning messages integrate directly with NVDA's Log Viewer.
+- Clean teardown of Tools menu items on addon termination or reload, releasing UI resources cleanly.
+- The documentation menu item automatically detects NVDA's active language and opens the Spanish or English guide accordingly.
+- The settings dialog now implements standard affirmative and escape IDs (`wx.ID_OK`, `wx.ID_CANCEL`) for native Enter/Escape keyboard navigation.
+
 ## What's new in 1.6 (8 September 2026)
 
 ### Fixed

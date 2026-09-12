@@ -8,6 +8,13 @@ import ui
 
 class BiosManagerDialog(wx.Dialog):
 	def __init__(self, parent, backend):
+		"""Prepara la ventana: memoria de trabajo y botones Aceptar y Cancelar.
+
+		Guarda el puente con la BIOS y crea las tres listas que la ventana usa
+		mientras está abierta: todos los ajustes leídos, los que pasan el filtro
+		de búsqueda y los cambios que todavía no se han guardado. El contenido
+		de la ventana lo monta makeSettings.
+		"""
 		self.backend = backend
 		self._all_settings = []
 		self._filtered_settings = []
@@ -28,12 +35,22 @@ class BiosManagerDialog(wx.Dialog):
 		btn_sizer.AddButton(self.btn_cancel)
 		
 		btn_sizer.Realize()
+		self.SetAffirmativeId(wx.ID_OK)
+		self.SetEscapeId(wx.ID_CANCEL)
 		main_sizer.Add(btn_sizer, 0, wx.EXPAND | wx.ALL, 10)
 		
 		self.SetSizer(main_sizer)
 		self.CenterOnParent()
 
 	def makeSettings(self, settingsSizer):
+		"""Monta el contenido de la ventana, en dos mitades.
+
+		A la izquierda, la casilla de búsqueda y la lista de ajustes con sus tres
+		columnas: nombre, valor actual y cambio pendiente. A la derecha, el panel
+		donde aparece el editor del ajuste que esté seleccionado. Al final deja el
+		foco en la lista y arranca en segundo plano la lectura de la BIOS, que
+		tarda varios segundos; hasta que termina, la lista dice "Cargando".
+		"""
 		# Splitter layout: List on left, Editor on right
 		main_hbox = wx.BoxSizer(wx.HORIZONTAL)
 		
@@ -133,6 +150,13 @@ class BiosManagerDialog(wx.Dialog):
 		self._populate_list()
 
 	def _populate_list(self):
+		"""Vuelve a rellenar la lista de la izquierda con los ajustes filtrados.
+
+		Borra lo que hubiera y escribe una fila por ajuste. El orden de arranque
+		se muestra distinto en cada columna para poder distinguirlas: numerado en
+		la del valor actual, y solo lo que se movió en la de pendientes. Al
+		terminar selecciona la primera fila y vacía el editor.
+		"""
 		self.list_ctrl.DeleteAllItems()
 		for idx, item in enumerate(self._filtered_settings):
 			name = item["name"]
@@ -190,6 +214,14 @@ class BiosManagerDialog(wx.Dialog):
 		self._build_editor(name, val, opts)
 
 	def _build_editor(self, name, val, opts):
+		"""Dibuja, a la derecha, el editor del ajuste seleccionado.
+
+		Escribe el nombre del ajuste, su valor actual y, si hay un cambio sin
+		guardar, también ese cambio. Después pregunta a _tipoDeEditor qué clase de
+		control hace falta (lista de arranque, opciones, fecha, hora, número o
+		texto) y llama al constructor correspondiente. Abajo pone siempre el botón
+		"Añadir a cambios pendientes".
+		"""
 		self.right_sizer.Clear(True)
 		
 		pending = self._pending_changes.get(name)
@@ -548,6 +580,15 @@ class BiosManagerDialog(wx.Dialog):
 		return name, val
 
 	def _on_apply(self, event):
+		"""Apunta el valor del editor como cambio pendiente. Todavía no toca la BIOS.
+
+		Comprueba primero que el valor sirva; en el orden de arranque, que no falte
+		ni sobre ninguna entrada. Si pasa, lo guarda en la lista de pendientes, lo
+		dice en voz alta (en el orden de arranque solo lo que se movió, porque leer
+		la lista entera no se entiende), actualiza la columna "Pendiente de
+		guardar", rehace el editor para que muestre el cambio y devuelve el foco a
+		la lista.
+		"""
 		name = self._current_edit_name
 		val = self._valorDelEditor()
 
@@ -599,6 +640,16 @@ class BiosManagerDialog(wx.Dialog):
 		self.list_ctrl.SetFocus()
 
 	def onSave(self, event=None):
+		"""Botón Aceptar: manda a la BIOS todos los cambios pendientes.
+
+		Antes comprueba dos cosas: que no haya un guardado en marcha, y que no
+		quede un valor escrito en el editor sin haber pulsado "Añadir a cambios
+		pendientes" (si queda, avisa y no cierra, porque antes ese cambio se
+		perdía en silencio). Si no hay nada pendiente, lo dice y cierra. Si lo hay,
+		desactiva los botones y lanza el guardado en segundo plano, ya que pide
+		permisos de administrador y tarda varios segundos; NVDA se quedaría trabado
+		si se hiciera aquí mismo.
+		"""
 		if getattr(self, "_guardando", False):
 			ui.message(_("Se están aplicando los cambios en la BIOS. Espera a que termine."))
 			return

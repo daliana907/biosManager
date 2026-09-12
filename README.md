@@ -3,7 +3,7 @@
 [![Pruebas](https://github.com/daliana907/biosManager/actions/workflows/pruebas.yml/badge.svg)](https://github.com/daliana907/biosManager/actions/workflows/pruebas.yml)
 
 Autora: Daliana
-Versión: 1.6
+Versión: 1.7
 Compatibilidad: NVDA 2023.1 en adelante
 Licencia: GNU GPL v2
 

@@ -7,6 +7,28 @@ Lo más reciente, arriba. En español primero y en inglés después.
 
 ---
 
+## 1.7 — 2026-09-12
+
+### Español
+
+#### Mejorado
+
+- Integración con el sistema oficial de registro de NVDA (`logHandler.log`), permitiendo que cualquier advertencia o fallo técnico quede reflejado limpiamente en el visor de registro de NVDA.
+- Al desactivar o recargar complementos, los elementos del menú en Herramientas se destruyen adecuadamente liberando recursos de la interfaz.
+- La opción de menú para abrir la documentación detecta automáticamente el idioma de NVDA y abre la versión correspondiente en español o inglés.
+- La ventana de ajustes incorpora identificadores estándar de wxWidgets para aceptar y cancelar, permitiendo cerrar con Escape o confirmar con Intro de forma nativa.
+
+### English
+
+#### Improved
+
+- Switched to NVDA's native logging framework (`logHandler.log`) so diagnostic and warning messages integrate seamlessly with NVDA's Log Viewer.
+- Clean teardown of Tools menu items on addon termination/reload, preventing orphaned UI handles.
+- The documentation menu entry now opens the guide in the user's active NVDA language (Spanish or English).
+- The settings dialog now implements standard affirmative and escape IDs (`wx.ID_OK`, `wx.ID_CANCEL`) for native Enter/Escape keyboard navigation.
+
+---
+
 ## 1.6 — 2026-09-08
 
 ### Español

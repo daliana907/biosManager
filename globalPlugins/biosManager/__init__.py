@@ -14,14 +14,26 @@ import ui
 from .dialog import BiosManagerDialog
 from .wmi_backend import WmiBackend
 
-log = logging.getLogger(__name__)
+try:
+    from logHandler import log
+except ImportError:
+    import logging
+    log = logging.getLogger(__name__)
 
 class GlobalPlugin(globalPluginHandler.GlobalPlugin):
     scriptCategory = _("Gestor de BIOS y UEFI")
 
     def __init__(self):
+        """Arranca el complemento en cuanto NVDA lo carga.
+
+        Crea el puente que habla con la BIOS, añade al menú Herramientas de NVDA
+        el submenú "Gestor de BIOS y UEFI" con sus tres opciones (abrir la
+        ventana, comprobar conflictos y ver la documentación) y lanza en segundo
+        plano la primera revisión de conflictos, para que NVDA no se quede
+        esperando mientras esa revisión ocurre.
+        """
         super().__init__()
-        log.info("BIOS Manager: Inicializando complemento (v1.5)...")
+        log.info("BIOS Manager: Inicializando complemento (v1.7)...")
         self.backend = WmiBackend()
         self._dialog = None
 
@@ -62,6 +74,12 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
         log.info("BIOS Manager: Complemento iniciado y listo.")
 
     def terminate(self):
+        """Deja todo como estaba cuando NVDA descarga el complemento.
+
+        Cierra la ventana si quedó abierta, quita del menú Herramientas los tres
+        elementos que se añadieron y borra el submenú. Si esto no se hiciera, al
+        recargar los complementos los menús aparecerían repetidos.
+        """
         log.info("BIOS Manager: Finalizando complemento...")
         if hasattr(self, "_dialog") and self._dialog:
             try:
@@ -78,7 +96,10 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
             if hasattr(self, "_itemDoc") and self._itemDoc:
                 gui.mainFrame.sysTrayIcon.Unbind(wx.EVT_MENU, source=self._itemDoc)
             if hasattr(self, "_subMenuItem") and self._subMenuItem:
-                self._toolsMenu.Remove(self._subMenuItem)
+                try:
+                    self._toolsMenu.DestroyItem(self._subMenuItem)
+                except Exception:
+                    self._toolsMenu.Remove(self._subMenuItem)
         except Exception as e:
             log.debug(f"BIOS Manager: Error retirando submenú en terminate: {e}")
 
@@ -94,12 +115,24 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
         wx.CallAfter(self._checkAddonConflicts, interactive=True)
 
     def _on_menu_doc(self, event):
-        doc = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", "..", "doc", "es", "readme.html"))
-        log.info(f"BIOS Manager: Abriendo documentación desde: {doc}")
-        if os.path.exists(doc):
+        addon_dir = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", ".."))
+        try:
+            import languageHandler
+            lang = languageHandler.getLanguage().split("_")[0]
+        except Exception:
+            lang = "es"
+        candidates = [lang, "es", "en"]
+        doc = None
+        for l in candidates:
+            p = os.path.join(addon_dir, "doc", l, "readme.html")
+            if os.path.exists(p):
+                doc = p
+                break
+        if doc and os.path.exists(doc):
+            log.info(f"BIOS Manager: Abriendo documentación desde: {doc}")
             os.startfile(doc)
         else:
-            log.warning(f"BIOS Manager: Archivo de documentación no encontrado en {doc}")
+            log.warning("BIOS Manager: Archivo de documentación no encontrado")
             ui.message(_("No se encontró el archivo de documentación de BIOS Manager."))
 
     def _startupBackgroundWorker(self):
@@ -189,6 +222,14 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
         return conflicts, warnings
 
     def _checkAddonConflicts(self, interactive=False):
+        """Revisa si otro complemento choca con este.
+
+        Pide la lista a auditConflicts(). Con interactive en False solo la deja
+        anotada en el registro de NVDA; así se usa al arrancar, sin molestar. Con
+        interactive en True abre un cuadro de mensaje que explica qué atajos de
+        teclado están repetidos y qué complementos podrían estorbar, o avisa de
+        que no hay ninguno.
+        """
         conflicts, warnings = self.auditConflicts()
         if interactive:
             total = len(conflicts) + len(warnings)
@@ -219,6 +260,12 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
                 )
 
     def open_dialog(self):
+        """Abre la ventana de ajustes de la BIOS.
+
+        Si esa ventana ya estaba abierta se le devuelve el foco en vez de crear
+        otra. Si no, se crea. Cualquier fallo al crearla se anota en el registro
+        y se dice en voz alta, en lugar de quedarse sin respuesta.
+        """
         log.info("BIOS Manager: Abriendo diálogo accesible de configuración de BIOS...")
         if self._dialog and bool(self._dialog):
             try:

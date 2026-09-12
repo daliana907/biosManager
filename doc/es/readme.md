@@ -1,7 +1,7 @@
 # Gestor de BIOS y UEFI para NVDA (BIOS / UEFI Manager)
 
 Autora: Daliana
-Versión: 1.6
+Versión: 1.7
 Compatibilidad: NVDA 2023.1 en adelante
 Licencia: GNU GPL v2
 
@@ -36,6 +36,17 @@ Sí, es totalmente seguro:
 3. A la derecha verás el valor actual. Si es una opción de Sí/No (como Secure Boot), podrás cambiarlo con las flechas en una lista desplegable. Si es el orden de arranque, tendrás listas para elegir qué disco va primero, segundo, etc.
 4. Pulsa en Añadir a cambios pendientes.
 5. Cuando termines, dale al botón Aceptar, confirma el aviso de Windows y listo. Los cambios se aplicarán la próxima vez que reinicies el equipo.
+
+---
+
+## Novedades de la versión 1.7 (12 de septiembre de 2026)
+
+### Mejorado
+
+- Registro técnico integrado directamente con `nvda.log` mediante el sistema nativo `logHandler`.
+- Limpieza completa del submenú en el menú Herramientas al desactivar o recargar complementos.
+- Detección automática del idioma del usuario al abrir el manual de ayuda desde el menú (español o inglés).
+- Soporte nativo de las teclas Escape para cancelar e Intro para confirmar en la ventana de configuración.
 
 ---
 
