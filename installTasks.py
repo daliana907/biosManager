@@ -7,9 +7,11 @@ import os
 import tempfile
 
 def onInstall():
+	"""Se ejecuta al instalar o actualizar el complemento Gestor de BIOS y UEFI."""
 	pass
 
 def onUninstall():
+	"""Limpia los scripts temporales de PowerShell generados para consultar o aplicar cambios en la BIOS."""
 	tmp = tempfile.gettempdir()
 	files_to_remove = [
 		"nvda_bios_preload.ps1",

@@ -14,6 +14,8 @@ from logHandler import log
 import ui
 
 class BiosManagerDialog(wx.Dialog):
+	"""Diálogo accesible para explorar, buscar y modificar parámetros del firmware UEFI."""
+
 	def __init__(self, parent, backend):
 		"""Prepara la ventana: memoria de trabajo y botones Aceptar y Cancelar.
 

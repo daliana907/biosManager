@@ -29,6 +29,7 @@ except ImportError:
 
 
 class GlobalPlugin(globalPluginHandler.GlobalPlugin):
+	"""Plugin global de NVDA para gestionar ajustes del firmware UEFI y opciones de reinicio."""
 	# Translators: Nombre de la categoría en el diálogo de Gestos de Entrada de NVDA.
 	scriptCategory = _("Gestor de BIOS y UEFI")
 
@@ -304,6 +305,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 		category=scriptCategory,
 	)
 	def script_openBiosManager(self, gesture: inputCore.InputGesture):
+		"""Abre la ventana accesible para consultar y configurar la BIOS/UEFI."""
 		log.info("BIOS Manager: Script de apertura ejecutado.")
 		self.open_dialog()
 
@@ -313,6 +315,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 		category=scriptCategory,
 	)
 	def script_checkConflicts(self, gesture: inputCore.InputGesture):
+		"""Ejecuta una auditoría interactiva de conflictos de atajos de teclado."""
 		log.info("BIOS Manager: Script de comprobación de conflictos ejecutado desde atajo de teclado.")
 		self._checkAddonConflicts(interactive=True)
 
@@ -322,6 +325,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 		category=scriptCategory,
 	)
 	def script_rebootToUefi(self, gesture: inputCore.InputGesture):
+		"""Solicita confirmación al usuario y reinicia el equipo hacia la pantalla de UEFI."""
 		log.info("BIOS Manager: Script de reinicio a UEFI ejecutado desde atajo de teclado.")
 		# Translators: Pregunta de confirmación antes de reiniciar el equipo para entrar a UEFI.
 		pregunta = _("¿Seguro que deseas reiniciar el equipo ahora mismo para acceder a la BIOS / UEFI?")
