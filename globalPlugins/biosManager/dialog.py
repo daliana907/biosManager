@@ -426,20 +426,37 @@ class BiosManagerDialog(wx.Dialog):
 		self.right_sizer.Add(row, 0, wx.ALL, 5)
 
 	def _editorDeHora(self, display_val):
-		"""Tres casillas numéricas: hora, minuto y segundo."""
-		# Translators: Etiqueta para el editor de hora.
-		lbl = wx.StaticText(self.right_panel, label=_("Hora (Hora, Minuto, Segundo):"))
-		self.right_sizer.Add(lbl, 0, wx.TOP | wx.LEFT, 5)
+		"""Casillas numéricas para hora, minuto y segundo según el formato original."""
 		parts = display_val.strip().split(':')
-		
+		self._time_has_seconds = len(parts) > 2
+		# Translators: Etiqueta para el editor de hora cuando incluye segundos.
+		lbl_text = _("Hora (Hora, Minuto, Segundo):") if self._time_has_seconds else _("Hora (Hora, Minuto):")
+		lbl = wx.StaticText(self.right_panel, label=lbl_text)
+		self.right_sizer.Add(lbl, 0, wx.TOP | wx.LEFT, 5)
+
+		try:
+			h = max(0, min(23, int(parts[0]))) if len(parts) > 0 and parts[0].isdigit() else 0
+		except (ValueError, TypeError):
+			h = 0
+		try:
+			m = max(0, min(59, int(parts[1]))) if len(parts) > 1 and parts[1].isdigit() else 0
+		except (ValueError, TypeError):
+			m = 0
+		try:
+			s = max(0, min(59, int(parts[2]))) if len(parts) > 2 and parts[2].isdigit() else 0
+		except (ValueError, TypeError):
+			s = 0
+
 		row = wx.BoxSizer(wx.HORIZONTAL)
-		self.sp_h = wx.SpinCtrl(self.right_panel, value=parts[0], min=0, max=23, size=(50, -1))
-		self.sp_m = wx.SpinCtrl(self.right_panel, value=parts[1], min=0, max=59, size=(50, -1))
-		self.sp_s = wx.SpinCtrl(self.right_panel, value=parts[2], min=0, max=59, size=(50, -1))
-		
+		self.sp_h = wx.SpinCtrl(self.right_panel, value=str(h), min=0, max=23, size=(50, -1))
+		self.sp_m = wx.SpinCtrl(self.right_panel, value=str(m), min=0, max=59, size=(50, -1))
 		row.Add(self.sp_h, 0, wx.RIGHT, 5)
 		row.Add(self.sp_m, 0, wx.RIGHT, 5)
-		row.Add(self.sp_s, 0, 0)
+		if self._time_has_seconds:
+			self.sp_s = wx.SpinCtrl(self.right_panel, value=str(s), min=0, max=59, size=(50, -1))
+			row.Add(self.sp_s, 0, 0)
+		else:
+			self.sp_s = None
 		self.right_sizer.Add(row, 0, wx.ALL, 5)
 
 	def _editorDeNumero(self, display_val):
@@ -659,8 +676,11 @@ class BiosManagerDialog(wx.Dialog):
 			elif self.editor_type == "time":
 				h = str(self.sp_h.GetValue()).zfill(2)
 				m = str(self.sp_m.GetValue()).zfill(2)
-				s = str(self.sp_s.GetValue()).zfill(2)
-				val = f"{h}:{m}:{s}"
+				if getattr(self, "_time_has_seconds", True) and getattr(self, "sp_s", None):
+					s = str(self.sp_s.GetValue()).zfill(2)
+					val = f"{h}:{m}:{s}"
+				else:
+					val = f"{h}:{m}"
 			elif self.editor_type == "spin":
 				val = str(self.ctrl.GetValue())
 			else:

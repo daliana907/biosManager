@@ -64,10 +64,12 @@ class WmiBackend:
 			with open(ps_file, "w", encoding="utf-8") as f:
 				f.write(ps_script)
 
+			ps_file_esc = ps_file.replace("'", "''")
+			out_file_esc = out_file.replace("'", "''")
 			if esperarSalida:
-				orden = f". '{ps_file}' | Out-File -FilePath '{out_file}' -Encoding UTF8"
+				orden = f". '{ps_file_esc}' | Out-File -FilePath '{out_file_esc}' -Encoding UTF8"
 			else:
-				orden = f". '{ps_file}'"
+				orden = f". '{ps_file_esc}'"
 
 			launcher_script = f'''
 $proc = new-object System.Diagnostics.Process
