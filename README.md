@@ -47,7 +47,7 @@ Todas las acciones se encuentran disponibles desde el menú de NVDA y pueden per
   - *Configuración de la BIOS / UEFI...:* Abre la ventana principal de ajustes.
   - *Reiniciar en la configuración de UEFI / BIOS...:* Reinicia el sistema directamente en la pantalla de configuración del firmware UEFI.
   - *Comprobar conflictos con otros complementos...:* Comprueba si existen atajos coincidentes o complementos duplicados.
-  - *Documentación:* Abre esta guía de ayuda.
+  *(La documentación de ayuda se consulta directamente desde el Gestor o la Tienda de complementos de NVDA a través del botón «Ayuda del complemento»).*
 - **Asignación de atajos:** Puedes asignar tus propios atajos de teclado en el menú de NVDA > Preferencias > Gestos de entrada, dentro de la categoría "Gestor de BIOS y UEFI".
 - **Dentro de la ventana de ajustes:**
   - *Búsqueda:* Escribe el término y pulsa `Intro` o el botón *Filtrar* para actualizar la lista. Pulsa *Limpiar* para restablecerla.
@@ -84,7 +84,7 @@ All features are accessible from the NVDA menu and can be assigned custom shortc
   - *BIOS / UEFI Settings...:* Opens the configuration dialog.
   - *Reboot to UEFI / BIOS settings...:* Reboots the machine directly into UEFI firmware setup.
   - *Check conflicts with other add-ons...:* Checks for colliding shortcuts or duplicate firmware add-ons.
-  - *Documentation:* Opens this help guide.
+  *(Add-on documentation is accessible directly from NVDA Add-on Store / Add-ons Manager by pressing the "Add-on help" button).*
 - **Custom gestures:** Assign your preferred shortcuts in NVDA Menu > Preferences > Input Gestures under the "BIOS and UEFI Manager" category.
 - **Inside the settings dialog:**
   - *Search:* Type your search query and press `Enter` or click the *Filter* button.

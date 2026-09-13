@@ -26,7 +26,7 @@ All features are accessible from the NVDA menu and can be assigned custom shortc
   - *BIOS / UEFI Settings...:* Opens the configuration dialog.
   - *Reboot to UEFI / BIOS settings...:* Reboots the machine directly into UEFI firmware setup.
   - *Check conflicts with other add-ons...:* Checks for colliding shortcuts or duplicate firmware add-ons.
-  - *Documentation:* Opens this help guide.
+  *(Add-on documentation is accessible directly from NVDA Add-on Store / Add-ons Manager by pressing the "Add-on help" button).*
 - **Custom gestures:** Assign your preferred shortcuts in NVDA Menu > Preferences > Input Gestures under the "BIOS and UEFI Manager" category.
 - **Inside the settings dialog:**
   - *Search:* Type your search query and press `Enter` or click the *Filter* button.

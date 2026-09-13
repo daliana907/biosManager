@@ -43,7 +43,7 @@ Todas las acciones se encuentran disponibles desde el menú de NVDA y pueden per
   - *Configuración de la BIOS / UEFI...:* Abre la ventana principal de ajustes.
   - *Reiniciar en la configuración de UEFI / BIOS...:* Reinicia el sistema directamente en la pantalla de configuración del firmware UEFI.
   - *Comprobar conflictos con otros complementos...:* Comprueba si existen atajos coincidentes o complementos duplicados.
-  - *Documentación:* Abre esta guía de ayuda.
+  *(La documentación de ayuda se consulta directamente desde el Gestor o la Tienda de complementos de NVDA a través del botón «Ayuda del complemento»).*
 - **Asignación de atajos:** Puedes asignar tus propios atajos de teclado en el menú de NVDA > Preferencias > Gestos de entrada, dentro de la categoría "Gestor de BIOS y UEFI".
 - **Dentro de la ventana de ajustes:**
   - *Búsqueda:* Escribe el término y pulsa `Intro` o el botón *Filtrar* para actualizar la lista. Pulsa *Limpiar* para restablecerla.
