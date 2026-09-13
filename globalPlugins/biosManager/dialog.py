@@ -211,6 +211,7 @@ class BiosManagerDialog(wx.Dialog):
 
 	def _clear_editor(self):
 		self.right_sizer.Clear(True)
+		self._current_edit_name = None
 		# Translators: Texto mostrado en el panel derecho cuando no hay ningún ajuste seleccionado.
 		lbl = wx.StaticText(self.right_panel, label=_("Selecciona un ajuste en la lista para editarlo."))
 		self.right_sizer.Add(lbl, 0, wx.ALL, 10)
