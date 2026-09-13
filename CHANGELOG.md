@@ -11,15 +11,21 @@ Lo más reciente, arriba. En español primero y en inglés después.
 
 ### Español
 
-- Se corrigió la edición de fechas para que respete el formato de origen de cada ordenador (con barras o guiones). De este modo ya no se marcan cambios falsos al navegar por la lista y la placa base no rechaza la fecha al guardarla.
-- Se mejoró la protección al escribir años y meses con el teclado, garantizando que los números siempre queden dentro de los límites válidos admitidos por el equipo.
-- Las opciones del equipo que tienen valores numéricos negativos o automáticos ahora se pueden ajustar cómodamente con las casillas numéricas habituales.
+- Se corrigió la edición de fechas para que respete el formato de origen de cada ordenador (con barras o guiones), evitando avisos falsos de cambios al recorrer la lista y asegurando que el equipo acepte la fecha al guardar.
+- Validación mejorada al escribir años y meses con el teclado, garantizando que los valores siempre queden dentro de los límites válidos del sistema.
+- Soporte para editar opciones del equipo con valores numéricos negativos o automáticos mediante las casillas numéricas habituales.
+- Mayor seguridad durante el guardado elevado de parámetros, impidiendo el cierre accidental de la ventana mientras se graban ajustes en el firmware.
+- Mensajes informativos más claros y descriptivos en caso de cancelación de permisos o respuestas específicas del sistema.
+- Mejoras generales de estabilidad, liberación de recursos y depuración en segundo plano.
 
 ### English
 
-- Fixed date editing to preserve the machine's original separator (slashes or hyphens), preventing false modification notices when browsing the list and ensuring changes are accepted upon saving.
-- Improved typing validation for years and months so typed numbers cannot exceed valid system boundaries.
-- System options using negative numbers or automatic codes can now be adjusted directly with standard numeric controls.
+- Fixed date editing to preserve the machine's original format (slashes or hyphens), preventing false modification notices when browsing the list and ensuring changes are accepted upon saving.
+- Improved keyboard validation for years and months so typed numbers remain within valid system boundaries.
+- Support for adjusting system options with negative or automatic numeric values using standard numeric spin controls.
+- Enhanced window safety during elevated writes, preventing accidental dismissal while firmware settings are being applied.
+- Clearer, user-friendly feedback if administrator permissions are declined or when specific firmware return codes are received.
+- General stability improvements, resource cleanup, and background reliability enhancements.
 
 ---
 
