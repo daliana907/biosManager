@@ -419,7 +419,7 @@ foreach ($r in $resultados) {
 				# Translators: Mensaje que avisa del reinicio inminente del sistema a UEFI/BIOS.
 				return True, _("El sistema se reiniciará en la BIOS / UEFI en 2 segundos.")
 			else:
-				err = res.stderr.strip() or res.stdout.strip()
+				err = res.stderr.strip() or res.stdout.strip() or _("código {code}").format(code=res.returncode)
 				log.warning(f"BIOS Manager: Falló shutdown /r /fw: {err}")
 				# Translators: Mensaje cuando falla el comando de reinicio al firmware UEFI.
 				return False, _("No se pudo iniciar el reinicio a UEFI ({error}). Puede requerir ejecutar NVDA como Administrador.").format(error=err)
