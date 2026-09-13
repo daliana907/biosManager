@@ -169,7 +169,7 @@ class BiosManagerDialog(wx.Dialog):
 		else:
 			self._filtered_settings = [
 				s for s in self._all_settings
-				if q in s["name"].lower()
+				if q in s["name"].lower() or q in str(s.get("value", "")).lower()
 			]
 		self._populate_list()
 
@@ -179,7 +179,7 @@ class BiosManagerDialog(wx.Dialog):
 		Borra lo que hubiera y escribe una fila por ajuste. El orden de arranque
 		se muestra distinto en cada columna para poder distinguirlas: numerado en
 		la del valor actual, y solo lo que se movió en la de pendientes. Al
-		terminar selecciona la primera fila y vacía el editor.
+		terminar selecciona la primera fila y prepara su editor a la derecha.
 		"""
 		self.list_ctrl.DeleteAllItems()
 		for idx, item in enumerate(self._filtered_settings):
@@ -202,8 +202,11 @@ class BiosManagerDialog(wx.Dialog):
 		if self.list_ctrl.GetItemCount() > 0:
 			self.list_ctrl.Select(0)
 			self.list_ctrl.Focus(0)
-			
-		self._clear_editor()
+			item = self._filtered_settings[0]
+			opts = self.backend.get_selections(item["name"])
+			self._build_editor(item["name"], item["value"], opts)
+		else:
+			self._clear_editor()
 
 	def _clear_editor(self):
 		self.right_sizer.Clear(True)
