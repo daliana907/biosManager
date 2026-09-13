@@ -209,13 +209,13 @@ class TipoDeEditorSegunElValor(unittest.TestCase):
         for valor in ("2026-09-08", "2026/09/08", "1999/12/31"):
             with self.subTest(valor=valor):
                 self.assertEqual(self.tipo("SystemDate", valor), "date")
-        for valor in ("10:30:00", "23:59:59", "00:00:00"):
+        for valor in ("10:30:00", "23:59:59", "00:00:00", "10:30"):
             with self.subTest(valor=valor):
                 self.assertEqual(self.tipo("SystemTime", valor), "time")
 
     def test_lo_que_solo_parece_fecha_u_hora_no_cuenta(self):
         """Una fecha con un dígito de menos no la entiende el editor de fechas."""
-        for valor in ("2026-9-8", "10:30", "2026-09", "8/9/2026"):
+        for valor in ("2026-9-8", "10:3", "2026-09", "8/9/2026"):
             with self.subTest(valor=valor):
                 self.assertIn(self.tipo("X", valor), ("text", "spin"))
 

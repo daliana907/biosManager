@@ -324,7 +324,7 @@ class BiosManagerDialog(wx.Dialog):
 		texto = display_val.strip()
 		if re.match(r'^\d{4}[/-]\d{2}[/-]\d{2}$', texto):
 			return "date"
-		if re.match(r'^\d{2}:\d{2}:\d{2}$', texto):
+		if re.match(r'^\d{2}:\d{2}(:\d{2})?$', texto):
 			return "time"
 		if re.match(r'^[+-]?\d+$', texto):
 			return "spin"
