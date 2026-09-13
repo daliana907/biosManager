@@ -1,7 +1,7 @@
 # Gestor de BIOS y UEFI para NVDA (BIOS / UEFI Manager)
 
 Autora: Daliana
-Versión: 1.8
+Versión: 1.9
 Compatibilidad: NVDA 2023.1 en adelante
 Licencia: GNU GPL v2
 
@@ -48,6 +48,14 @@ Todas las acciones se encuentran disponibles desde el menú de NVDA y pueden per
   - *Búsqueda:* Escribe el término y pulsa `Intro` o el botón *Filtrar* para actualizar la lista. Pulsa *Limpiar* para restablecerla.
   - *Orden de arranque:* Selecciona un dispositivo de la lista y utiliza `Alt + Flecha Arriba` o `Alt + Flecha Abajo` (o los botones *Subir* y *Bajar*) para cambiar su posición.
   - *Confirmar y cancelar:* Pulsa `Aceptar` (o Intro fuera de campos de texto) para aplicar los cambios pendientes en la BIOS, o `Cancelar` (o Escape) para descartar los cambios en memoria y cerrar.
+
+---
+
+## Novedades de la versión 1.9 (13 de septiembre de 2026)
+
+- Corrección en la edición de fechas para respetar el formato original del equipo (con barras o guiones), evitando avisos falsos de cambios al navegar por la lista y asegurando que el ordenador acepte la fecha al guardarla.
+- Mayor seguridad al escribir años y meses con el teclado, garantizando que los números siempre queden dentro de los límites válidos admitidos por el equipo.
+- Las opciones que tienen valores numéricos negativos o automáticos ahora se pueden ajustar cómodamente con las casillas numéricas habituales.
 
 ---
 

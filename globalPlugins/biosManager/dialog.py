@@ -322,7 +322,7 @@ class BiosManagerDialog(wx.Dialog):
 			return "date"
 		if re.match(r'^\d{2}:\d{2}:\d{2}$', texto):
 			return "time"
-		if texto.isdigit():
+		if re.match(r'^[+-]?\d+$', texto):
 			return "spin"
 		return "text"
 
@@ -404,6 +404,7 @@ class BiosManagerDialog(wx.Dialog):
 		dia = int(parts[2]) if len(parts) > 2 and parts[2].isdigit() else 1
 
 		# Rango estándar BIOS/UEFI: 1970 a 2037
+		self._date_sep = "-" if "-" in display_val else "/"
 		anio = max(1970, min(2037, anio))
 		mes = max(1, min(12, mes))
 		max_dias = self._diasEnMes(anio, mes)
@@ -640,11 +641,21 @@ class BiosManagerDialog(wx.Dialog):
 					self.boot_list.GetString(i) for i in range(self.boot_list.GetCount())
 				)
 			elif self.editor_type == "date":
-				y = self.sp_year.GetValue()
-				m = self.sp_month.GetValue()
+				try:
+					y = max(1970, min(2037, int(self.sp_year.GetValue())))
+				except (ValueError, TypeError):
+					y = 2026
+				try:
+					m = max(1, min(12, int(self.sp_month.GetValue())))
+				except (ValueError, TypeError):
+					m = 1
 				max_dias = self._diasEnMes(y, m)
-				d = min(self.sp_day.GetValue(), max_dias)
-				val = f"{str(y).zfill(4)}/{str(m).zfill(2)}/{str(d).zfill(2)}"
+				try:
+					d = max(1, min(max_dias, int(self.sp_day.GetValue())))
+				except (ValueError, TypeError):
+					d = 1
+				sep = getattr(self, "_date_sep", "/")
+				val = f"{str(y).zfill(4)}{sep}{str(m).zfill(2)}{sep}{str(d).zfill(2)}"
 			elif self.editor_type == "time":
 				h = str(self.sp_h.GetValue()).zfill(2)
 				m = str(self.sp_m.GetValue()).zfill(2)

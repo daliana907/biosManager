@@ -32,6 +32,12 @@ All features are accessible from the NVDA menu and can be assigned custom shortc
   - *Boot order:* Select a device and press `Alt + Up Arrow` or `Alt + Down Arrow` (or click *Move up* / *Move down*) to adjust its position.
   - *Apply and Cancel:* Click *OK* (or press Enter) to write pending changes to UEFI, or *Cancel* (or Escape) to dismiss changes and close.
 
+## What's new in 1.9 (13 September 2026)
+
+- Fixed date editing to preserve the machine's original separator (slashes or hyphens), preventing false modification notices when browsing the list and ensuring changes are accepted upon saving.
+- Improved typing validation for years and months so typed numbers cannot exceed valid system boundaries.
+- System options using negative numbers or automatic codes can now be adjusted directly with standard numeric controls.
+
 ## What's new in 1.7 (12 September 2026)
 
 ### Security and Compatibility

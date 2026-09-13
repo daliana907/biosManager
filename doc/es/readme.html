@@ -13,9 +13,19 @@
 </head>
 <body>
 <h1>Gestor de BIOS y UEFI para NVDA</h1>
-<p>Autora: Daliana | Versión 1.8 | Compatible con NVDA 2023.1 en adelante</p>
+<p>Autora: Daliana | Versión 1.9 | Compatible con NVDA 2023.1 en adelante</p>
+<p>Licencia: GNU GPL v2 | <a href="https://github.com/daliana907/biosManager">Repositorio en GitHub</a> | <a href="https://github.com/daliana907/biosManager/releases/latest/download/biosManager-1.9.nvda-addon">Descargar complemento (.nvda-addon)</a></p>
 
-<p>Este complemento te permite consultar y modificar las opciones del firmware UEFI de tu equipo directamente desde Windows con NVDA, de forma totalmente accesible.</p>
+<h2>¿Para qué sirve?</h2>
+<p>Normalmente, para cambiar algo en la configuración del firmware (como el orden de arranque para arrancar desde una unidad USB o activar la virtualización) hay que reiniciar la computadora y pulsar teclas a ciegas en una pantalla visual que no tiene sonido ni lector de pantalla.</p>
+<p>Con este complemento no necesitas ayuda visual: abres la ventana dentro de Windows, buscas la opción que quieras con el teclado, haces el cambio y al reiniciar el ordenador la placa base ya tendrá tu configuración guardada.</p>
+
+<h2>Novedades de la versión 1.9 (13 de septiembre de 2026)</h2>
+<ul>
+  <li>Corrección en la edición de fechas para respetar el formato original del equipo (con barras o guiones), evitando avisos falsos de cambios al navegar por la lista y asegurando que el ordenador acepte la fecha al guardarla.</li>
+  <li>Mayor seguridad al escribir años y meses con el teclado, garantizando que los números siempre queden dentro de los límites válidos admitidos por el equipo.</li>
+  <li>Las opciones que tienen valores numéricos negativos o automáticos ahora se pueden ajustar cómodamente con las casillas numéricas habituales.</li>
+</ul>
 
 <h2>Diferencia entre BIOS clásica y UEFI</h2>
 <p>Es importante distinguir entre la BIOS heredada y el firmware UEFI moderno:</p>

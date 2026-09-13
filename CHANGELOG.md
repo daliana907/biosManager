@@ -7,6 +7,22 @@ Lo más reciente, arriba. En español primero y en inglés después.
 
 ---
 
+## 1.9 — 2026-09-13
+
+### Español
+
+- Se corrigió la edición de fechas para que respete el formato de origen de cada ordenador (con barras o guiones). De este modo ya no se marcan cambios falsos al navegar por la lista y la placa base no rechaza la fecha al guardarla.
+- Se mejoró la protección al escribir años y meses con el teclado, garantizando que los números siempre queden dentro de los límites válidos admitidos por el equipo.
+- Las opciones del equipo que tienen valores numéricos negativos o automáticos ahora se pueden ajustar cómodamente con las casillas numéricas habituales.
+
+### English
+
+- Fixed date editing to preserve the machine's original separator (slashes or hyphens), preventing false modification notices when browsing the list and ensuring changes are accepted upon saving.
+- Improved typing validation for years and months so typed numbers cannot exceed valid system boundaries.
+- System options using negative numbers or automatic codes can now be adjusted directly with standard numeric controls.
+
+---
+
 ## 1.7 — 2026-09-12
 
 ### Español

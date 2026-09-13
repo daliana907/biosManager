@@ -220,12 +220,12 @@ class TipoDeEditorSegunElValor(unittest.TestCase):
                 self.assertIn(self.tipo("X", valor), ("text", "spin"))
 
     def test_los_numeros_usan_casilla_numerica(self):
-        for valor in ("1234", " 42 ", "0", "007"):
+        for valor in ("1234", " 42 ", "0", "007", "-5", "+10"):
             with self.subTest(valor=valor):
                 self.assertEqual(self.tipo("X", valor), "spin")
 
     def test_lo_demas_es_texto_libre(self):
-        for valor in ("texto libre", "", "  ", "abc123", "-5"):
+        for valor in ("texto libre", "", "  ", "abc123", "v1.0"):
             with self.subTest(valor=valor):
                 self.assertEqual(self.tipo("X", valor), "text")
 
