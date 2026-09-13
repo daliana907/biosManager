@@ -810,7 +810,10 @@ class BiosManagerDialog(wx.Dialog):
 			log.info("BIOS Manager: Diálogo cerrado con Aceptar sin cambios pendientes.")
 			# Translators: Mensaje cuando no hay cambios que guardar al pulsar Aceptar.
 			ui.message(_("No hay cambios que guardar."))
-			self.Destroy()
+			try:
+				self.Destroy()
+			except (RuntimeError, wx.PyDeadObjectError):
+				pass
 			return
 		
 		cambios = dict(self._pending_changes)
@@ -865,4 +868,7 @@ class BiosManagerDialog(wx.Dialog):
 			self._pending_changes.clear()
 		else:
 			log.info("BIOS Manager: Diálogo cerrado con Cancelar.")
-		self.Destroy()
+		try:
+			self.Destroy()
+		except (RuntimeError, wx.PyDeadObjectError):
+			pass
