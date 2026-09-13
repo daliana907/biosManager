@@ -47,6 +47,7 @@ class BiosManagerDialog(wx.Dialog):
 		btn_sizer.Realize()
 		self.SetAffirmativeId(wx.ID_OK)
 		self.SetEscapeId(wx.ID_CANCEL)
+		self.Bind(wx.EVT_CLOSE, self.onCancel)
 		main_sizer.Add(btn_sizer, 0, wx.EXPAND | wx.ALL, 10)
 		
 		self.SetSizer(main_sizer)

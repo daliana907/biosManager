@@ -198,7 +198,8 @@ $results | ConvertTo-Json -Compress
 
 		selections = []
 		try:
-			cmd = f"(Get-CimInstance -Namespace root\\wmi -ClassName Lenovo_GetBiosSelections | Invoke-CimMethod -MethodName GetBiosSelections -Arguments @{{Item='{setting_name}'}}).Selections"
+			escaped_name = setting_name.replace("'", "''")
+			cmd = f"(Get-CimInstance -Namespace root\\wmi -ClassName Lenovo_GetBiosSelections | Invoke-CimMethod -MethodName GetBiosSelections -Arguments @{{Item='{escaped_name}'}}).Selections"
 			res = subprocess.run(["powershell", "-NoProfile", "-Command", cmd], capture_output=True, text=True,
 				creationflags=subprocess.CREATE_NO_WINDOW, timeout=self.ESPERA_CONSULTA)
 			if res.returncode == 0 and res.stdout.strip():
@@ -246,7 +247,7 @@ $results | ConvertTo-Json -Compress
 			for nombre, valor in settings_dict.items()
 		)
 		ps_script = r"""
-$pendientes = @{ %s }
+$pendientes = [ordered]@{ %s }
 $resultados = @()
 foreach ($nombre in $pendientes.Keys) {
     $valor = $pendientes[$nombre]
