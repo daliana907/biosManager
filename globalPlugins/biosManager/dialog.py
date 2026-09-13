@@ -847,13 +847,18 @@ class BiosManagerDialog(wx.Dialog):
 			wx.MessageBox(msg, _("La BIOS no aceptó todos los cambios"), wx.OK | wx.ICON_WARNING)
 
 		self._pending_changes.clear()
-		self.Destroy()
+		try:
+			self.Destroy()
+		except (RuntimeError, wx.PyDeadObjectError):
+			pass
 
 	def onCancel(self, event=None):
 		"""Cierra la ventana descartando los cambios pendientes en memoria."""
 		if getattr(self, "_guardando", False):
 			# Translators: Aviso al intentar cancelar mientras se aplican cambios en la BIOS.
 			ui.message(_("Se están aplicando los cambios en la BIOS. Espera a que termine."))
+			if event and hasattr(event, "CanVeto") and event.CanVeto():
+				event.Veto()
 			return
 		if self._pending_changes:
 			log.info(f"BIOS Manager: Cancelando diálogo y descartando {len(self._pending_changes)} cambio(s) pendientes de la memoria.")
