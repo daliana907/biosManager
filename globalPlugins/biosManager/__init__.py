@@ -38,7 +38,9 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 			raise globalPluginHandler.ActionCancelled("biosManager does not run in secure mode")
 
 		super().__init__()
-		log.info("BIOS Manager: Inicializando complemento (v1.7)...")
+		addon = addonHandler.getCodeAddon()
+		ver_str = addon.manifest.get("version", "1.9") if addon and getattr(addon, "manifest", None) else "1.9"
+		log.info(f"BIOS Manager: Inicializando complemento (v{ver_str})...")
 		self.backend = WmiBackend()
 		self._dialog = None
 
