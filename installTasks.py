@@ -25,3 +25,15 @@ def onUninstall():
 				os.remove(p)
 		except OSError:
 			pass
+	try:
+		import shutil
+		for item in os.listdir(tmp):
+			if item.startswith("nvda_bios_"):
+				p = os.path.join(tmp, item)
+				if os.path.isdir(p):
+					shutil.rmtree(p, ignore_errors=True)
+				else:
+					try: os.remove(p)
+					except OSError: pass
+	except Exception:
+		pass
