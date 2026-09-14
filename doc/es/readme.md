@@ -1,11 +1,11 @@
 # Gestor de BIOS y UEFI para NVDA (BIOS / UEFI Manager)
 
-Autora: Daliana
-Versión: 1.9
-Compatibilidad: NVDA 2023.1 en adelante
-Licencia: GNU GPL v2
+- Autora: Daliana
+- Versión: 1.9
+- Compatibilidad: NVDA 2023.1 en adelante
+- Licencia: GNU GPL v2
 
-[Read in English below](#english-version)
+[Read in English](../en/readme.md)
 
 ---
 
@@ -16,84 +16,68 @@ Este complemento permite consultar y modificar la configuración del firmware UE
 ### ¿Para qué sirve?
 Normalmente, para cambiar algo en la configuración del firmware (como el orden de arranque para arrancar desde una unidad USB o activar la virtualización) hay que reiniciar la computadora y pulsar teclas a ciegas en una pantalla visual que no tiene sonido ni lector de pantalla.
 
-Con este complemento no necesitas ayuda visual: abres la ventana dentro de Windows, buscas la opción que quieras con el teclado, haces el cambio y al reiniciar el ordenador la placa base ya tendrá tu configuración guardada.
+Con este complemento no necesitas ayuda visual: abres la ventana dentro de Windows, buscas la opción que quieras con el teclado, haces el cambio y al reiniciar el ordenador la placa base ya tiene la nueva configuración aplicada.
 
-### BIOS heredada frente a UEFI
-Es fundamental distinguir entre la BIOS clásica y el firmware UEFI moderno:
-- La BIOS heredada (Legacy BIOS) no se puede controlar ni modificar desde el sistema operativo una vez iniciado.
-- El firmware UEFI moderno sí permite la comunicación y lectura/escritura de variables de configuración mediante la interfaz WMI de Windows.
-- Por tanto, este complemento funciona exclusivamente en sistemas con firmware UEFI nativo. No funcionará en equipos antiguos con BIOS clásica ni en equipos donde se haya activado el módulo de compatibilidad heredada (CSM).
+### Tipos de BIOS y compatibilidad
+Es fundamental distinguir entre la BIOS clásica y el firmware UEFI:
+
+- La BIOS heredada (Legacy BIOS) no se puede controlar ni modificar desde Windows de forma accesible.
+- El firmware UEFI moderno permite la comunicación segura con Windows a través de la interfaz WMI de los fabricantes. Este complemento está diseñado específicamente para interactuar con UEFI.
 
 ### Compatibilidad de computadoras
 Por la forma en que funciona la comunicación con la placa base en Windows:
+
 - Funciona en: Equipos Lenovo de gama profesional (portátiles ThinkPad, computadoras de escritorio ThinkCentre y estaciones de trabajo ThinkStation).
 - No funciona en: Equipos armados por piezas (clónicos) o computadoras portátiles domésticas que no traen el sistema de comunicación WMI del fabricante. Si lo abres en un equipo no compatible, te avisará de forma clara y segura.
 
 ### Advertencias de seguridad y uso responsable
 Modificar los parámetros del firmware del equipo es una operación delicada:
-- **Orden de arranque:** Desactivar o alterar el orden de las unidades de arranque puede impedir que Windows inicie normalmente.
-- **Seguridad y virtualización:** Modificar parámetros como Secure Boot, TPM, contraseñas de arranque o virtualización (VT-x / AMD-V) puede afectar al cifrado de unidad (como BitLocker) o a la integridad del arranque del sistema. Modifica únicamente los parámetros que conozcas.
-- **Protección en pantallas seguras:** Por razones de seguridad, el complemento bloquea automáticamente su carga en pantallas seguras de Windows (como la pantalla de bloqueo o el Control de cuentas de usuario) para evitar accesos no autorizados con privilegios elevados.
+
+- Orden de arranque: Desactivar o alterar el orden de las unidades de arranque puede impedir que Windows inicie normalmente.
+- Seguridad y virtualización: Modificar parámetros como Secure Boot, TPM, contraseñas de arranque o virtualización (VT-x / AMD-V) puede afectar al cifrado de unidad (como BitLocker) o a la integridad del arranque del sistema. Modifica únicamente los parámetros que conozcas.
+- Protección en pantallas seguras: Por razones de seguridad, el complemento bloquea automáticamente su carga en pantallas seguras de Windows (como la pantalla de bloqueo o el Control de cuentas de usuario) para evitar accesos no autorizados con privilegios elevados.
 
 ### Opciones y atajos de teclado
+
 El complemento no asigna ningún atajo de teclado por defecto para no interferir con las órdenes nativas de NVDA (por ejemplo, el atajo nativo `NVDA + Shift + B` para verbalizar el estado de la batería).
 
-Todas las acciones se encuentran disponibles desde el menú de NVDA y pueden personalizarse con los atajos que desees:
-- **Menú NVDA > Herramientas > Gestor de BIOS y UEFI:**
-  - *Configuración de la BIOS / UEFI...:* Abre la ventana principal de ajustes.
-  - *Reiniciar en la configuración de UEFI / BIOS...:* Reinicia el sistema directamente en la pantalla de configuración del firmware UEFI.
-  - *Comprobar conflictos con otros complementos...:* Comprueba si existen atajos coincidentes o complementos duplicados.
-- **Asignación de atajos:** Puedes asignar tus propios atajos de teclado en el menú de NVDA > Preferencias > Gestos de entrada, dentro de la categoría "Gestor de BIOS y UEFI".
-- **Dentro de la ventana de ajustes:**
-  - *Búsqueda:* Escribe el término y pulsa `Intro` o el botón *Filtrar* para actualizar la lista. Pulsa *Limpiar* para restablecerla.
-  - *Orden de arranque:* Selecciona un dispositivo de la lista y utiliza `Alt + Flecha Arriba` o `Alt + Flecha Abajo` (o los botones *Subir* y *Bajar*) para cambiar su posición.
-  - *Confirmar y cancelar:* Pulsa `Aceptar` (o Intro fuera de campos de texto) para aplicar los cambios pendientes en la BIOS, o `Cancelar` (o Escape) para descartar los cambios en memoria y cerrar.
+### Opciones desde el menú de NVDA
+
+En el menú de NVDA > Herramientas > Gestor de BIOS y UEFI:
+
+- Configuración de la BIOS / UEFI...: Abre la ventana principal de ajustes.
+- Reiniciar en la configuración de UEFI / BIOS...: Reinicia el sistema directamente en la pantalla de configuración del firmware UEFI.
+- Comprobar conflictos con otros complementos...: Comprueba si existen atajos coincidentes o complementos duplicados.
+
+### Asignación de atajos personalizados
+
+Puedes asignar tus propios atajos de teclado en el menú de NVDA > Preferencias > Gestos de entrada, dentro de la categoría "Gestor de BIOS y UEFI".
+
+### Teclas útiles dentro de la ventana de ajustes
+
+- Búsqueda: Escribe el término y pulsa Intro o el botón Filtrar para actualizar la lista. Pulsa Limpiar para restablecerla.
+- Orden de arranque: Selecciona un dispositivo de la lista y utiliza Alt + Flecha Arriba o Alt + Flecha Abajo (o los botones Subir y Bajar) para cambiar su posición.
+- Confirmar y cancelar: Pulsa Aceptar (o Intro fuera de campos de texto) para aplicar los cambios pendientes en la BIOS, o Cancelar (o Escape) para descartar los cambios en memoria y cerrar.
 
 ---
+
+## Novedades de la versión 1.9.1 (13 de septiembre de 2026)
+
+- Mayor ligereza del complemento: se eliminaron dependencias internas que ya no se utilizaban, reduciendo el peso y la complejidad del código cargado por NVDA.
+- Documentación técnica interna completa de la comunicación con la BIOS y de todos los controles de la ventana de ajustes.
 
 ## Novedades de la versión 1.9 (13 de septiembre de 2026)
 
-- Corrección en la edición de fechas para respetar el formato original del equipo (con barras o guiones), evitando avisos falsos de cambios al navegar por la lista y asegurando que el ordenador acepte la fecha al guardarla.
-- Mayor seguridad al escribir años y meses con el teclado, garantizando que los números siempre queden dentro de los límites válidos admitidos por el equipo.
-- Las opciones que tienen valores numéricos negativos o automáticos ahora se pueden ajustar cómodamente con las casillas numéricas habituales.
+- Edición de fechas adaptada a cada ordenador: el editor ahora respeta automáticamente si tu placa base usa barras o guiones para las fechas, evitando avisos falsos de que has cambiado algo al moverte por la lista y asegurando que el equipo acepte la fecha al guardarla.
+- Mayor seguridad al escribir fechas con el teclado: no te permite escribir días o meses imposibles (como el 30 de febrero o el mes 13) y calcula correctamente los años bisiestos para que la fecha siempre sea válida y segura.
+- Opciones numéricas con valores negativos o automáticos: las opciones del equipo que usan números negativos o códigos automáticos especiales ahora se pueden ajustar cómodamente con las casillas numéricas de la ventana.
+- Ventanas más estables: se corrigieron errores que podían ocurrir si se cerraba la ventana mientras se realizaban comprobaciones del sistema.
+- Protección total al guardar ajustes en la placa base: la ventana no se puede cerrar accidentalmente ni con Escape mientras se están grabando los cambios en el ordenador, protegiendo la placa base de interrupciones peligrosas.
+- Reconocimiento de horas mejorado: el editor de hora valida correctamente los formatos habituales de reloj, impidiendo introducir horas o minutos fuera de rango.
+- Búsqueda más rápida: al escribir en el cuadro de búsqueda, la lista se filtra al instante tanto por el nombre de la opción como por su valor, cargando de inmediato el control adecuado para cambiarlo.
+- Reinicio a la BIOS más fiable: la opción de reiniciar directamente en la configuración de la BIOS o UEFI comprueba los permisos necesarios y te avisa con claridad si tu equipo admite esta función.
+- Limpieza automática del sistema: al instalar o desinstalar el complemento, no queda ningún archivo temporal en el ordenador.
 
----
-
-## Novedades de la versión 1.7 (12 de septiembre de 2026)
-
-### Seguridad y compatibilidad
-
-- Se anula la carga del complemento en escritorios seguros de Windows para evitar riesgos de elevación de privilegios.
-- Se elimina el atajo por defecto `NVDA+Shift+B` para no interferir con la función nativa de lectura de batería de NVDA. Las funciones siguen siendo reasignables en Gestos de entrada.
-- Se añade al menú Herramientas la opción para reiniciar directamente en la configuración del firmware UEFI.
-- Se utiliza la API oficial de NVDA (`openDocumentation()`) para abrir la documentación en el idioma del usuario.
-- Expresión regular con límites de palabra en la auditoría de conflictos para evitar falsos positivos con palabras como "cambios".
-- Validación dinámica de fechas según el mes y año (considerando bisiestos y rango estándar 1970-2037).
-- Controles numéricos con rango completo de 32 bits con signo (-2147483648 a 2147483647).
-- Búsqueda filtrada mediante botón Filtrar o tecla Intro.
-- Cancelación limpia sin llamadas innecesarias a la BIOS si no se han enviado cambios.
-
----
-
-## Novedades de la versión 1.6 (8 de septiembre de 2026)
-
-### Corregido
-
-- Los cambios en la BIOS no llegaban a aplicarse: la orden que se enviaba a Windows estaba mal formada.
-- El archivo con la respuesta de la BIOS quedaba en una carpeta que NVDA no siempre podía leer, y la operación parecía fallar sin motivo.
-- Al aplicar un cambio se daba por bueno sin comprobarlo. Ahora se vuelve a leer el valor y se informa de si la BIOS lo aceptó o lo rechazó.
-- Guardar en la BIOS bloqueaba NVDA hasta terminar. Ahora se hace en segundo plano.
-- Al cerrar la ventana con un cambio escrito pero sin aplicar, ese cambio se perdía en silencio. Ahora avisa.
-- El orden de arranque se editaba con un desplegable por posición, y se podía repetir un dispositivo y omitir otro sin que nada lo advirtiera.
-- Las consultas a la BIOS podían quedarse esperando indefinidamente si el equipo no respondía o si nadie contestaba al aviso de permisos.
-
-### Cambios internos
-
-- El orden de arranque se edita ahora en una sola lista que se reordena con Alt y las flechas, y al aplicar se resume solo lo que cambió de sitio.
-- El editor de opciones separa decidir qué tipo de editor toca de construirlo, y esa decisión tiene pruebas propias.
-- Se eliminaron unas 119 líneas de código que ya no se usaba.
-- Se corrigieron dos problemas de seguridad: un archivo temporal con nombre predecible y valores que se enviaban a Windows sin escapar.
-- Se añadieron 52 comprobaciones automáticas que se ejecutan solas en GitHub con cada cambio.
-
-El listado completo de todas las versiones está en el archivo CHANGELOG.md
-del repositorio del complemento.
+### Créditos y Licencia
+- Autora: Daliana.
+- Licencia: GNU General Public License v2.

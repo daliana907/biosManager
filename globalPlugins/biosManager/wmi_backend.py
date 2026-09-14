@@ -34,6 +34,7 @@ class WmiBackend:
 
 
 	def __init__(self):
+		"""Inicializa la instancia del backend WMI y su caché en memoria para listas de selección."""
 		self._selections_cache: Dict[str, List[str]] = {}
 
 	def _ejecutarPowerShellElevado(self, ps_script, esperarSalida=False):

@@ -134,6 +134,7 @@ class BiosManagerDialog(wx.Dialog):
 		threading.Thread(target=self._load_settings_thread, daemon=True).start()
 
 	def _load_settings_thread(self):
+		"""Carga todos los ajustes del firmware en un hilo en segundo plano para no bloquear la interfaz."""
 		try:
 			settings = self.backend.get_all_settings()
 		except Exception as e:
@@ -159,6 +160,7 @@ class BiosManagerDialog(wx.Dialog):
 		self.Destroy()
 
 	def _on_settings_loaded(self, settings):
+		"""Recibe la lista de ajustes leídos del firmware y puebla la interfaz de usuario."""
 		if not settings:
 			self._on_unsupported()
 			return
@@ -166,6 +168,7 @@ class BiosManagerDialog(wx.Dialog):
 		self._apply_filter("")
 
 	def _apply_filter(self, query):
+		"""Filtra la lista de ajustes mostrados comparando el texto de búsqueda con el nombre y valor."""
 		q = query.strip().lower()
 		if not q:
 			self._filtered_settings = list(self._all_settings)
@@ -212,6 +215,7 @@ class BiosManagerDialog(wx.Dialog):
 			self._clear_editor()
 
 	def _clear_editor(self):
+		"""Limpia el panel derecho de edición cuando no hay ningún ajuste seleccionado."""
 		self.right_sizer.Clear(True)
 		self._current_edit_name = None
 		# Translators: Texto mostrado en el panel derecho cuando no hay ningún ajuste seleccionado.
@@ -220,20 +224,24 @@ class BiosManagerDialog(wx.Dialog):
 		self.right_panel.Layout()
 
 	def _on_search(self, event):
+		"""Manejador del evento de texto de búsqueda para aplicar el filtro en tiempo real."""
 		self._apply_filter(self.txt_search.GetValue())
 
 	def _on_clear_search(self, event):
+		"""Limpia la casilla de búsqueda y restablece la lista completa de ajustes."""
 		self.txt_search.ChangeValue("")
 		self._apply_filter("")
 		self.txt_search.SetFocus()
 
 	def _get_focused_setting(self):
+		"""Devuelve el diccionario del ajuste que tiene actualmente la selección en la lista."""
 		idx = self.list_ctrl.GetFirstSelected()
 		if 0 <= idx < len(self._filtered_settings):
 			return self._filtered_settings[idx]
 		return None
 
 	def _on_item_selected(self, event):
+		"""Manejador de selección en la lista para construir el editor correspondiente en el panel derecho."""
 		item = self._get_focused_setting()
 		if not item:
 			return

@@ -1,117 +1,130 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<title>Gestor de BIOS y UEFI para NVDA</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gestor de BIOS y UEFI - Guía de usuario</title>
 <style>
-  body { font-family: sans-serif; max-width: 800px; margin: 20px auto; line-height: 1.5; color: #222; }
-  h1, h2, h3 { color: #1a5276; }
-  ul { padding-left: 20px; }
-  li { margin-bottom: 6px; }
-  .nota { background: #eaf2f8; border-left: 4px solid #2980b9; padding: 10px; margin: 15px 0; }
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", Arial, sans-serif;
+    line-height: 1.6;
+    color: #24292e;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+h1, h2, h3, h4 {
+    color: #1b1f23;
+    border-bottom: 1px solid #eaecef;
+    padding-bottom: 0.3em;
+}
+code {
+    background-color: rgba(27,31,35,0.05);
+    border-radius: 3px;
+    font-size: 85%;
+    padding: 0.2em 0.4em;
+    font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, Courier, monospace;
+}
+pre {
+    background-color: #f6f8fa;
+    border-radius: 3px;
+    font-size: 85%;
+    line-height: 1.45;
+    overflow: auto;
+    padding: 16px;
+}
+pre code {
+    background-color: transparent;
+    padding: 0;
+}
+ul, ol {
+    padding-left: 2em;
+}
+li {
+    margin: 0.3em 0;
+}
+hr {
+    height: 0.25em;
+    padding: 0;
+    margin: 24px 0;
+    background-color: #e1e4e8;
+    border: 0;
+}
 </style>
 </head>
 <body>
-<h1>Gestor de BIOS y UEFI para NVDA</h1>
-<p>Autora: Daliana | Versión 1.9 | Compatible con NVDA 2023.1 en adelante</p>
-<p>Licencia: GNU GPL v2 | <a href="https://github.com/daliana907/biosManager">Repositorio en GitHub</a> | <a href="https://github.com/daliana907/biosManager/releases/latest/download/biosManager-1.9.nvda-addon">Descargar complemento (.nvda-addon)</a></p>
-
-<h2>¿Para qué sirve?</h2>
+<h1>Gestor de BIOS y UEFI para NVDA (BIOS / UEFI Manager)</h1>
+<ul>
+<li>Autora: Daliana</li>
+<li>Versión: 1.9</li>
+<li>Compatibilidad: NVDA 2023.1 en adelante</li>
+<li>Licencia: GNU GPL v2</li>
+</ul>
+<p><a href="../en/readme.html">Read in English</a></p>
+<hr />
+<h2>Versión en Español</h2>
+<p>Este complemento permite consultar y modificar la configuración del firmware UEFI de tu ordenador directamente desde el escritorio de Windows con NVDA, de forma totalmente accesible.</p>
+<h3>¿Para qué sirve?</h3>
 <p>Normalmente, para cambiar algo en la configuración del firmware (como el orden de arranque para arrancar desde una unidad USB o activar la virtualización) hay que reiniciar la computadora y pulsar teclas a ciegas en una pantalla visual que no tiene sonido ni lector de pantalla.</p>
-<p>Con este complemento no necesitas ayuda visual: abres la ventana dentro de Windows, buscas la opción que quieras con el teclado, haces el cambio y al reiniciar el ordenador la placa base ya tendrá tu configuración guardada.</p>
-
+<p>Con este complemento no necesitas ayuda visual: abres la ventana dentro de Windows, buscas la opción que quieras con el teclado, haces el cambio y al reiniciar el ordenador la placa base ya tiene la nueva configuración aplicada.</p>
+<h3>Tipos de BIOS y compatibilidad</h3>
+<p>Es fundamental distinguir entre la BIOS clásica y el firmware UEFI:</p>
+<ul>
+<li>La BIOS heredada (Legacy BIOS) no se puede controlar ni modificar desde Windows de forma accesible.</li>
+<li>El firmware UEFI moderno permite la comunicación segura con Windows a través de la interfaz WMI de los fabricantes. Este complemento está diseñado específicamente para interactuar con UEFI.</li>
+</ul>
+<h3>Compatibilidad de computadoras</h3>
+<p>Por la forma en que funciona la comunicación con la placa base en Windows:</p>
+<ul>
+<li>Funciona en: Equipos Lenovo de gama profesional (portátiles ThinkPad, computadoras de escritorio ThinkCentre y estaciones de trabajo ThinkStation).</li>
+<li>No funciona en: Equipos armados por piezas (clónicos) o computadoras portátiles domésticas que no traen el sistema de comunicación WMI del fabricante. Si lo abres en un equipo no compatible, te avisará de forma clara y segura.</li>
+</ul>
+<h3>Advertencias de seguridad y uso responsable</h3>
+<p>Modificar los parámetros del firmware del equipo es una operación delicada:</p>
+<ul>
+<li>Orden de arranque: Desactivar o alterar el orden de las unidades de arranque puede impedir que Windows inicie normalmente.</li>
+<li>Seguridad y virtualización: Modificar parámetros como Secure Boot, TPM, contraseñas de arranque o virtualización (VT-x / AMD-V) puede afectar al cifrado de unidad (como BitLocker) o a la integridad del arranque del sistema. Modifica únicamente los parámetros que conozcas.</li>
+<li>Protección en pantallas seguras: Por razones de seguridad, el complemento bloquea automáticamente su carga en pantallas seguras de Windows (como la pantalla de bloqueo o el Control de cuentas de usuario) para evitar accesos no autorizados con privilegios elevados.</li>
+</ul>
+<h3>Opciones y atajos de teclado</h3>
+<p>El complemento no asigna ningún atajo de teclado por defecto para no interferir con las órdenes nativas de NVDA (por ejemplo, el atajo nativo <code>NVDA + Shift + B</code> para verbalizar el estado de la batería).</p>
+<h3>Opciones desde el menú de NVDA</h3>
+<p>En el menú de NVDA &gt; Herramientas &gt; Gestor de BIOS y UEFI:</p>
+<ul>
+<li>Configuración de la BIOS / UEFI...: Abre la ventana principal de ajustes.</li>
+<li>Reiniciar en la configuración de UEFI / BIOS...: Reinicia el sistema directamente en la pantalla de configuración del firmware UEFI.</li>
+<li>Comprobar conflictos con otros complementos...: Comprueba si existen atajos coincidentes o complementos duplicados.</li>
+</ul>
+<h3>Asignación de atajos personalizados</h3>
+<p>Puedes asignar tus propios atajos de teclado en el menú de NVDA &gt; Preferencias &gt; Gestos de entrada, dentro de la categoría "Gestor de BIOS y UEFI".</p>
+<h3>Teclas útiles dentro de la ventana de ajustes</h3>
+<ul>
+<li>Búsqueda: Escribe el término y pulsa Intro o el botón Filtrar para actualizar la lista. Pulsa Limpiar para restablecerla.</li>
+<li>Orden de arranque: Selecciona un dispositivo de la lista y utiliza Alt + Flecha Arriba o Alt + Flecha Abajo (o los botones Subir y Bajar) para cambiar su posición.</li>
+<li>Confirmar y cancelar: Pulsa Aceptar (o Intro fuera de campos de texto) para aplicar los cambios pendientes en la BIOS, o Cancelar (o Escape) para descartar los cambios en memoria y cerrar.</li>
+</ul>
+<hr />
+<h2>Novedades de la versión 1.9.1 (13 de septiembre de 2026)</h2>
+<ul>
+<li>Mayor ligereza del complemento: se eliminaron dependencias internas que ya no se utilizaban, reduciendo el peso y la complejidad del código cargado por NVDA.</li>
+<li>Documentación técnica interna completa de la comunicación con la BIOS y de todos los controles de la ventana de ajustes.</li>
+</ul>
 <h2>Novedades de la versión 1.9 (13 de septiembre de 2026)</h2>
 <ul>
-  <li>Corrección en la edición de fechas para respetar el formato original del equipo (con barras o guiones), evitando avisos falsos de cambios al navegar por la lista y asegurando que el ordenador acepte la fecha al guardarla.</li>
-  <li>Mayor seguridad al escribir años y meses con el teclado, garantizando que los números siempre queden dentro de los límites válidos admitidos por el equipo.</li>
-  <li>Las opciones que tienen valores numéricos negativos o automáticos ahora se pueden ajustar cómodamente con las casillas numéricas habituales.</li>
+<li>Edición de fechas adaptada a cada ordenador: el editor ahora respeta automáticamente si tu placa base usa barras o guiones para las fechas, evitando avisos falsos de que has cambiado algo al moverte por la lista y asegurando que el equipo acepte la fecha al guardarla.</li>
+<li>Mayor seguridad al escribir fechas con el teclado: no te permite escribir días o meses imposibles (como el 30 de febrero o el mes 13) y calcula correctamente los años bisiestos para que la fecha siempre sea válida y segura.</li>
+<li>Opciones numéricas con valores negativos o automáticos: las opciones del equipo que usan números negativos o códigos automáticos especiales ahora se pueden ajustar cómodamente con las casillas numéricas de la ventana.</li>
+<li>Ventanas más estables: se corrigieron errores que podían ocurrir si se cerraba la ventana mientras se realizaban comprobaciones del sistema.</li>
+<li>Protección total al guardar ajustes en la placa base: la ventana no se puede cerrar accidentalmente ni con Escape mientras se están grabando los cambios en el ordenador, protegiendo la placa base de interrupciones peligrosas.</li>
+<li>Reconocimiento de horas mejorado: el editor de hora valida correctamente los formatos habituales de reloj, impidiendo introducir horas o minutos fuera de rango.</li>
+<li>Búsqueda más rápida: al escribir en el cuadro de búsqueda, la lista se filtra al instante tanto por el nombre de la opción como por su valor, cargando de inmediato el control adecuado para cambiarlo.</li>
+<li>Reinicio a la BIOS más fiable: la opción de reiniciar directamente en la configuración de la BIOS o UEFI comprueba los permisos necesarios y te avisa con claridad si tu equipo admite esta función.</li>
+<li>Limpieza automática del sistema: al instalar o desinstalar el complemento, no queda ningún archivo temporal en el ordenador.</li>
 </ul>
-
-<h2>Diferencia entre BIOS clásica y UEFI</h2>
-<p>Es importante distinguir entre la BIOS heredada y el firmware UEFI moderno:</p>
+<h3>Créditos y Licencia</h3>
 <ul>
-  <li>La BIOS heredada (Legacy BIOS) no se puede controlar ni modificar desde el sistema operativo una vez iniciado.</li>
-  <li>El firmware UEFI moderno sí permite la comunicación y lectura/escritura de variables de configuración mediante la interfaz WMI de Windows.</li>
-  <li>Por tanto, este complemento funciona exclusivamente en sistemas con firmware UEFI nativo. No funcionará en equipos antiguos con BIOS clásica ni en equipos con el módulo de emulación heredada (CSM) activo.</li>
+<li>Autora: Daliana.</li>
+<li>Licencia: GNU General Public License v2.</li>
 </ul>
-
-<h2>Equipos compatibles</h2>
-<ul>
-  <li>Computadoras Lenovo de gama profesional: portátiles ThinkPad, computadoras de escritorio ThinkCentre y estaciones de trabajo ThinkStation.</li>
-  <li>En computadoras armadas por piezas o portátiles sin soporte WMI del fabricante, el complemento avisará de forma clara y segura que no encontró soporte.</li>
-</ul>
-
-<div class="nota">
-  <strong>Advertencias de seguridad y uso responsable:</strong>
-  <ul>
-    <li><strong>Orden de arranque:</strong> Modificar los dispositivos de arranque o deshabilitar unidades puede impedir que Windows inicie con normalidad.</li>
-    <li><strong>Seguridad y virtualización:</strong> Alterar opciones como Secure Boot, TPM, contraseñas de arranque o virtualización (VT-x / AMD-V) puede afectar al cifrado de unidad (BitLocker) o a la integridad del arranque. Modifica únicamente los parámetros que conozcas.</li>
-    <li><strong>Bloqueo en pantallas seguras:</strong> Por motivos de seguridad, el complemento bloquea automáticamente su ejecución en pantallas seguras de Windows para evitar operaciones no autorizadas con privilegios elevados.</li>
-  </ul>
-</div>
-
-<h2>Opciones del menú Herramientas y atajos de teclado</h2>
-<p>El complemento no asigna ningún atajo de teclado por defecto para evitar pisar comandos nativos de NVDA (como el atajo de estado de batería NVDA+Shift+B). Todas las funciones son accesibles desde el menú y configurables:</p>
-<ul>
-  <li><strong>Configuración de la BIOS / UEFI...:</strong> Abre la ventana principal de ajustes.</li>
-  <li><strong>Reiniciar en la configuración de UEFI / BIOS...:</strong> Reinicia el equipo directamente en la pantalla de configuración del firmware UEFI.</li>
-  <li><strong>Comprobar conflictos con otros complementos...:</strong> Diagnostica colisiones de atajos de teclado o complementos duplicados.</li>
-  <li><strong>Asignación de atajos:</strong> Puedes definir tus propios atajos desde el menú de NVDA &gt; Preferencias &gt; Gestos de entrada, categoría "Gestor de BIOS y UEFI".</li>
-</ul>
-
-<h2>Cómo usar la ventana de configuración</h2>
-<ol>
-  <li>Abre la ventana desde el menú Herramientas. Espera unos segundos a que cargue la lista.</li>
-  <li>Escribe en el cuadro de búsqueda y pulsa <code>Intro</code> o el botón <em>Filtrar</em> para buscar un ajuste. Pulsa <em>Limpiar</em> para restablecer.</li>
-  <li>A la derecha podrás modificar el valor según su tipo (desplegables, fecha con validación de año y mes, hora, número con rango de 32 bits con signo o texto).</li>
-  <li>En el orden de arranque, selecciona un dispositivo y pulsa <code>Alt + Flecha Arriba</code> o <code>Alt + Flecha Abajo</code> (o los botones <em>Subir</em> y <em>Bajar</em>) para reordenarlo.</li>
-  <li>Pulsa el botón <em>Añadir a cambios pendientes</em>.</li>
-  <li>Pulsa <em>Aceptar</em> (o Intro) y confirma la ventana de permisos de Windows para aplicar los cambios en la placa base, o <em>Cancelar</em> (o Escape) para descartarlos en memoria y cerrar.</li>
-</ol>
-
-<h2>Novedades de la versión 1.8 (12 de septiembre de 2026)</h2>
-<h3>Seguridad y documentación</h3>
-<ul>
-  <li>Seguridad reforzada: detección estricta de modo seguro (secureMode) para anular la carga del complemento en pantallas protegidas (UAC, pantalla de bloqueo e inicio de sesión).</li>
-  <li>Apertura oficial de la documentación: acceso al manual mediante la API oficial de complementos de NVDA con control de excepciones.</li>
-  <li>Aclaración técnica y seguridad: distinción formal entre BIOS heredada (no configurable desde el SO ni bajo CSM) y firmware UEFI moderno, con advertencias claras de seguridad en manual y manifiesto.</li>
-</ul>
-
-<h2>Novedades de la versión 1.7 (12 de septiembre de 2026)</h2>
-<h3>Seguridad y compatibilidad</h3>
-<ul>
-  <li>Anulación automática de la carga en modo seguro / pantallas seguras de NVDA para prevenir riesgos de seguridad.</li>
-  <li>Eliminación del atajo por defecto para no interferir con la función nativa de lectura de batería de NVDA.</li>
-  <li>Opción en el menú Herramientas para reiniciar el sistema en la configuración de UEFI.</li>
-  <li>Apertura de documentación mediante la API oficial de NVDA (openDocumentation).</li>
-  <li>Filtro de búsqueda manual mediante botón Filtrar o tecla Intro.</li>
-  <li>Validación dinámica del día del mes en el editor de fechas (rango 1970-2037 y días ajustados al mes y bisiesto).</li>
-  <li>Rango de 32 bits con signo en controles de edición numérica.</li>
-  <li>Detección de ajustes con opciones cuando su valor por defecto es una cadena vacía.</li>
-  <li>Auditoría de conflictos con límites de palabras para evitar falsos positivos con palabras como "cambios".</li>
-  <li>Cancelación de ventana sin llamadas innecesarias a la BIOS.</li>
-</ul>
-
-<h2>Novedades de la versión 1.6 (8 de septiembre de 2026)</h2>
-<h3>Corregido</h3>
-<ul>
-  <li>Los cambios en la BIOS no llegaban a aplicarse: la orden que se enviaba a Windows estaba mal formada.</li>
-  <li>El archivo con la respuesta de la BIOS quedaba en una carpeta que NVDA no siempre podía leer, y la operación parecía fallar sin motivo.</li>
-  <li>Al aplicar un cambio se daba por bueno sin comprobarlo. Ahora se vuelve a leer el valor y se informa de si la BIOS lo aceptó o lo rechazó.</li>
-  <li>Guardar en la BIOS bloqueaba NVDA hasta terminar. Ahora se hace en segundo plano.</li>
-  <li>Al cerrar la ventana con un cambio escrito pero sin aplicar, ese cambio se perdía en silencio. Ahora avisa.</li>
-  <li>El orden de arranque se editaba con un desplegable por posición, y se podía repetir un dispositivo y omitir otro sin que nada lo advirtiera.</li>
-  <li>Las consultas a la BIOS podían quedarse esperando indefinidamente si el equipo no respondía o si nadie contestaba al aviso de permisos.</li>
-</ul>
-<h3>Cambios internos</h3>
-<ul>
-  <li>El orden de arranque se edita ahora en una sola lista que se reordena con Alt y las flechas, y al aplicar se resume solo lo que cambió de sitio.</li>
-  <li>El editor de opciones separa decidir qué tipo de editor toca de construirlo, y esa decisión tiene pruebas propias.</li>
-  <li>Se eliminaron unas 119 líneas de código que ya no se usaba.</li>
-  <li>Se corrigieron dos problemas de seguridad: un archivo temporal con nombre predecible y valores que se enviaban a Windows sin escapar.</li>
-  <li>Se añadieron 52 comprobaciones automáticas que se ejecutan solas en GitHub con cada cambio.</li>
-</ul>
-<p>El listado completo de todas las versiones está en el archivo CHANGELOG.md del repositorio del complemento.</p>
-
 </body>
 </html>

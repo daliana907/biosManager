@@ -4,7 +4,6 @@
 # Este archivo está cubierto por la Licencia Pública General de GNU (GPLv2).
 # Consulta el archivo LICENSE para más detalles.
 
-import os
 import re
 import threading
 import time
@@ -118,18 +117,22 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 		log.info("BIOS Manager: Complemento finalizado limpiamente.")
 
 	def _on_menu_open(self, event):
+		"""Manejador de evento del menú para abrir la ventana de ajustes de BIOS."""
 		log.info("BIOS Manager: Opción 'Configuración de la BIOS / UEFI' seleccionada en el menú.")
 		self.open_dialog()
 
 	def _on_menu_reboot(self, event):
+		"""Manejador de evento del menú para reiniciar directamente en el firmware UEFI."""
 		log.info("BIOS Manager: Opción 'Reiniciar en la configuración de UEFI / BIOS' seleccionada en el menú.")
 		self.script_rebootToUefi(None)
 
 	def _on_menu_conflicts(self, event):
+		"""Manejador de evento del menú para comprobar interactivamente conflictos de atajos."""
 		log.info("BIOS Manager: Opción 'Comprobar conflictos' seleccionada en el menú.")
 		wx.CallAfter(self._checkAddonConflicts, interactive=True)
 
 	def _startupBackgroundWorker(self):
+		"""Comprueba en segundo plano tras el arranque de NVDA si existen conflictos con otros complementos."""
 		try:
 			time.sleep(3.0)
 			self._checkAddonConflicts(interactive=False)

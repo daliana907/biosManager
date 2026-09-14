@@ -1,107 +1,130 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>BIOS / UEFI Manager for NVDA</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BIOS / UEFI Manager - User Guide</title>
 <style>
-  body { font-family: sans-serif; max-width: 800px; margin: 20px auto; line-height: 1.5; color: #222; }
-  h1, h2, h3 { color: #1a5276; }
-  ul { padding-left: 20px; }
-  li { margin-bottom: 6px; }
-  .nota { background: #eaf2f8; border-left: 4px solid #2980b9; padding: 10px; margin: 15px 0; }
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", Arial, sans-serif;
+    line-height: 1.6;
+    color: #24292e;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+h1, h2, h3, h4 {
+    color: #1b1f23;
+    border-bottom: 1px solid #eaecef;
+    padding-bottom: 0.3em;
+}
+code {
+    background-color: rgba(27,31,35,0.05);
+    border-radius: 3px;
+    font-size: 85%;
+    padding: 0.2em 0.4em;
+    font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, Courier, monospace;
+}
+pre {
+    background-color: #f6f8fa;
+    border-radius: 3px;
+    font-size: 85%;
+    line-height: 1.45;
+    overflow: auto;
+    padding: 16px;
+}
+pre code {
+    background-color: transparent;
+    padding: 0;
+}
+ul, ol {
+    padding-left: 2em;
+}
+li {
+    margin: 0.3em 0;
+}
+hr {
+    height: 0.25em;
+    padding: 0;
+    margin: 24px 0;
+    background-color: #e1e4e8;
+    border: 0;
+}
 </style>
 </head>
 <body>
-<h1>BIOS / UEFI Manager for NVDA</h1>
-<p>Author: Daliana | Version 1.9 | Compatibility: NVDA 2023.1 or later</p>
-
-<p>This add-on allows blind and visually impaired users to view and modify UEFI firmware settings directly from Windows using NVDA.</p>
-
+<h1>BIOS and UEFI Manager for NVDA</h1>
+<ul>
+<li>Author: Daliana</li>
+<li>Version: 1.9</li>
+<li>Compatibility: NVDA 2023.1 and later</li>
+<li>License: GNU GPL v2</li>
+</ul>
+<p><a href="../es/readme.html">Leer en español</a></p>
+<hr />
+<h2>English Version</h2>
+<p>This add-on allows you to view and modify your computer's UEFI firmware settings directly from the Windows desktop with NVDA in a fully accessible way.</p>
+<h3>What is it for?</h3>
+<p>Normally, changing firmware settings (such as the boot order to boot from a USB drive or enabling virtualization) requires restarting the computer and pressing keys blindly on a visual screen with no speech or screen reader support.</p>
+<p>With this add-on, you do not need sighted assistance: open the window inside Windows, find the setting you want using the keyboard, make the change, and when you reboot, the motherboard applies the new settings.</p>
+<h3>BIOS Types and Compatibility</h3>
+<p>It is essential to distinguish between legacy BIOS and UEFI firmware:</p>
+<ul>
+<li>Legacy BIOS cannot be managed or modified from Windows accessibly.</li>
+<li>Modern UEFI firmware enables secure communication with Windows through vendor WMI interfaces. This add-on is designed specifically for UEFI.</li>
+</ul>
+<h3>Supported Computers</h3>
+<p>Due to how motherboard communication works in Windows:</p>
+<ul>
+<li>Supported: Lenovo business line computers (ThinkPad laptops, ThinkCentre desktops, and ThinkStation workstations).</li>
+<li>Not supported: Custom-built desktop computers or consumer laptops lacking vendor WMI interfaces. If opened on an unsupported computer, the add-on alerts you safely.</li>
+</ul>
+<h3>Safety Warnings and Responsible Use</h3>
+<p>Modifying firmware settings is a delicate operation:</p>
+<ul>
+<li>Boot order: Changing boot devices or their order can prevent Windows from booting normally.</li>
+<li>Security and virtualization: Modifying settings like Secure Boot, TPM, supervisor passwords, or virtualization (VT-x / AMD-V) can affect drive encryption (such as BitLocker) or system boot integrity. Only modify settings you understand.</li>
+<li>Secure desktop protection: For security reasons, the add-on automatically disables itself on Windows secure screens (such as lock screens or User Account Control prompts) to prevent unauthorized privileged access.</li>
+</ul>
+<h3>Options and Keyboard Shortcuts</h3>
+<p>The add-on assigns no default keyboard shortcuts to avoid conflicting with native NVDA commands (such as <code>NVDA + Shift + B</code> for battery status).</p>
+<h3>Options from the NVDA Menu</h3>
+<p>Under NVDA Menu &gt; Tools &gt; BIOS and UEFI Manager:</p>
+<ul>
+<li>BIOS / UEFI Settings...: Opens the main settings dialog.</li>
+<li>Reboot to UEFI / BIOS settings...: Restarts the system directly into UEFI firmware setup.</li>
+<li>Check shortcut conflicts with other add-ons...: Checks for overlapping shortcuts or duplicate add-ons.</li>
+</ul>
+<h3>Custom Shortcut Assignment</h3>
+<p>Assign your preferred keyboard shortcuts under NVDA Menu &gt; Preferences &gt; Input Gestures, in the "BIOS and UEFI Manager" category.</p>
+<h3>Keyboard Shortcuts inside the Settings Window</h3>
+<ul>
+<li>Search: Type the search term and press Enter or the Filter button. Press Clear to reset.</li>
+<li>Boot Order: Select a device and use Alt + Up Arrow or Alt + Down Arrow (or Move Up / Move Down buttons) to change its position.</li>
+<li>Confirm and Cancel: Press OK (or Enter outside text fields) to apply pending BIOS changes, or Cancel (or Escape) to discard changes and close.</li>
+</ul>
+<hr />
+<h2>What's new in 1.9.1 (13 September 2026)</h2>
+<ul>
+<li>Lighter add-on footprint: removed unused internal dependencies, reducing the amount of code loaded by NVDA.</li>
+<li>Complete internal technical documentation of BIOS communication and all settings window controls.</li>
+</ul>
 <h2>What's new in 1.9 (13 September 2026)</h2>
 <ul>
-  <li>Fixed date editing to preserve the machine's original separator (slashes or hyphens), preventing false modification notices when browsing the list and ensuring changes are accepted upon saving.</li>
-  <li>Improved typing validation for years and months so typed numbers cannot exceed valid system boundaries.</li>
-  <li>System options using negative numbers or automatic codes can now be adjusted directly with standard numeric controls.</li>
+<li>Machine-specific date format support: the date editor now automatically matches whether your motherboard uses slashes or hyphens for dates, preventing false modification warnings when browsing and ensuring the firmware accepts saved dates.</li>
+<li>Safter date entry via keyboard: prevents entering invalid dates (such as February 30 or month 13) and accurately calculates leap years so dates are always valid and safe.</li>
+<li>Numeric settings with negative or automatic values: system options using negative numbers or special automatic codes can now be adjusted easily using the numeric controls in the window.</li>
+<li>Improved window stability: resolved errors that could occur if the window was dismissed while system checks were running.</li>
+<li>Complete protection during firmware saving: the window cannot be closed accidentally or with Escape while changes are being written to the computer, safeguarding the motherboard against dangerous interruptions.</li>
+<li>Enhanced time recognition: the time editor validates standard clock formats, preventing out-of-range hours or minutes.</li>
+<li>Faster search: typing in the search box dynamically filters the list by both setting name and value, instantly loading the right control to edit it.</li>
+<li>More reliable reboot to BIOS: rebooting directly into BIOS/UEFI setup checks for required permissions and announces clearly whether your computer supports this feature.</li>
+<li>Automatic system cleanup: installing or uninstalling the add-on completely removes temporary files without leaving leftover traces.</li>
 </ul>
-
-<h2>What's new in 1.7 (12 September 2026)</h2>
-
-<h2>Legacy BIOS vs. UEFI</h2>
-<p>It is important to distinguish between legacy BIOS and modern UEFI firmware:</p>
+<h3>Credits and License</h3>
 <ul>
-  <li>Legacy BIOS cannot be controlled or configured from the operating system once booted.</li>
-  <li>Modern UEFI firmware allows communication and configuration through the Windows WMI interface.</li>
-  <li>Therefore, this add-on works exclusively on systems with native UEFI firmware. It will not work on legacy BIOS machines or when Compatibility Support Module (CSM) legacy emulation is active.</li>
+<li>Author: Daliana.</li>
+<li>License: GNU General Public License v2.</li>
 </ul>
-
-<h2>Supported Computers</h2>
-<ul>
-  <li>Lenovo business systems: ThinkPad laptops, ThinkCentre desktops, and ThinkStation workstations.</li>
-  <li>On custom-built PCs or machines without vendor WMI support, the add-on will safely report that no supported interface was found.</li>
-</ul>
-
-<div class="nota">
-  <strong>Security &amp; Responsible Use:</strong>
-  <ul>
-    <li><strong>Boot order:</strong> Altering boot devices or disabling drives can prevent Windows from starting normally.</li>
-    <li><strong>Security &amp; Virtualization:</strong> Modifying options like Secure Boot, TPM, passwords, or virtualization (VT-x / AMD-V) can impact drive encryption (BitLocker) or virtual machine support. Only modify settings you understand.</li>
-    <li><strong>Secure screen blocking:</strong> The add-on blocks execution on secure Windows desktops to prevent unauthorized high-privilege access.</li>
-  </ul>
-</div>
-
-<h2>Tools Menu Options &amp; Shortcuts</h2>
-<p>The add-on does not assign any default keyboard shortcut to avoid conflicting with NVDA's core commands (such as NVDA+Shift+B for battery status). All actions are available from the menu and can be assigned custom gestures:</p>
-<ul>
-  <li><strong>BIOS / UEFI Settings...:</strong> Opens the main configuration dialog.</li>
-  <li><strong>Reboot to UEFI / BIOS settings...:</strong> Reboots the machine directly into UEFI firmware setup.</li>
-  <li><strong>Check conflicts with other add-ons...:</strong> Diagnoses duplicate shortcuts or add-on collisions.</li>
-  <li><strong>Assigning gestures:</strong> You can assign custom shortcuts via NVDA Menu &gt; Preferences &gt; Input Gestures under the "BIOS and UEFI Manager" category.</li>
-</ul>
-
-<h2>Using the Settings Dialog</h2>
-<ol>
-  <li>Open the dialog from the Tools menu. Wait a few moments for options to load.</li>
-  <li>Type in the search box and press <code>Enter</code> or click the <em>Filter</em> button. Click <em>Clear</em> to reset.</li>
-  <li>On the right panel, edit the setting based on its type (dropdowns, dynamic date editor, time, signed 32-bit integer spin control, or text).</li>
-  <li>In the boot order list, select a device and press <code>Alt + Up Arrow</code> or <code>Alt + Down Arrow</code> (or use the <em>Move up</em> and <em>Move down</em> buttons) to reorder.</li>
-  <li>Click the <em>Add to pending changes</em> button.</li>
-  <li>Click <em>OK</em> (or press Enter) and accept the Windows UAC confirmation to write changes to UEFI, or <em>Cancel</em> (or Escape) to discard changes in memory and exit.</li>
-</ol>
-
-<h2>What's new in 1.7 (12 September 2026)</h2>
-<h3>Security and Compatibility</h3>
-<ul>
-  <li>Prevents loading in NVDA secure mode to eliminate privilege escalation risks.</li>
-  <li>Removed default keyboard shortcut to avoid overriding NVDA's native battery status command.</li>
-  <li>Added a Tools menu option to reboot directly into UEFI firmware setup.</li>
-  <li>Uses NVDA's official API (openDocumentation) to open documentation according to the active language.</li>
-  <li>Conflict detection regex now uses word boundary matching to eliminate false positives on words like "cambios".</li>
-  <li>Dynamic month and leap-year validation for BIOS date settings (1970-2037).</li>
-  <li>Signed 32-bit integer range (-2147483648 to 2147483647) for numeric spin controls.</li>
-  <li>Settings with available options are correctly treated as dropdowns even when their current value is empty.</li>
-  <li>Canceling the dialog no longer triggers unnecessary WMI calls.</li>
-</ul>
-
-<h2>What's new in 1.6 (8 September 2026)</h2>
-<h3>Fixed</h3>
-<ul>
-  <li>BIOS changes were never applied: the command sent to Windows was malformed.</li>
-  <li>The file with the BIOS answer was left in a folder NVDA could not always read, and the operation appeared to fail for no reason.</li>
-  <li>Applying a change was assumed to work without checking. The value is now read back and you are told whether the BIOS accepted or rejected it.</li>
-  <li>Saving to the BIOS froze NVDA until it finished. It now runs in the background.</li>
-  <li>Closing the window with a typed but unapplied change lost it silently. It now warns you.</li>
-  <li>Boot order was edited with one dropdown per position, so a device could be repeated and another omitted with no warning.</li>
-  <li>BIOS queries could wait forever if the machine did not answer or nobody responded to the permission prompt.</li>
-</ul>
-<h3>Internal changes</h3>
-<ul>
-  <li>Boot order is now edited in a single list reordered with Alt and the arrow keys, and only what actually moved is summarised on apply.</li>
-  <li>The settings editor separates deciding which editor a value needs from building it, and that decision has its own tests.</li>
-  <li>Removed about 119 lines of code that were no longer used.</li>
-  <li>Fixed two security issues: a temporary file with a predictable name, and values sent to Windows without escaping.</li>
-  <li>Added 52 automatic checks that run on their own on GitHub with every change.</li>
-</ul>
-<p>The full history of every version is in the CHANGELOG.md file of the add-on repository.</p>
-
 </body>
 </html>
