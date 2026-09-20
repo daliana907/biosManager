@@ -1,90 +1,37 @@
-# Gestor de BIOS y UEFI para NVDA (BIOS / UEFI Manager)
+# BIOS Manager
 
-[![Pruebas](https://github.com/daliana907/biosManager/actions/workflows/pruebas.yml/badge.svg)](https://github.com/daliana907/biosManager/actions/workflows/pruebas.yml)
+* Autor: Daliana
+* Compatibilidad con NVDA: 2023.1 en adelante
+* Descarga de la versión estable: https://github.com/daliana907/biosManager
 
-- Autora: Daliana
-- Versión: 1.9
-- Compatibilidad: NVDA 2023.1 en adelante
-- Licencia: GNU GPL v2
+Este complemento te permite ajustar las configuraciones internas de la placa base (BIOS/UEFI) de tu computadora portátil directamente desde Windows usando el lector de pantalla NVDA, sin tener que navegar por menús visuales inaccesibles durante el arranque del equipo.
 
-[Read in English below](#english-version)
+La configuración de la BIOS históricamente ha sido una de las barreras de accesibilidad más grandes, ya que la pantalla de arranque del equipo no carga ningún sistema de audio o lector de pantalla. Bios Manager derriba esta barrera conectándose a la interfaz de administración interna de Windows.
 
-[Descargar última versión / Download latest (.nvda-addon)](https://github.com/daliana907/biosManager/releases/latest/download/biosManager-1.9.nvda-addon) · [Registro de cambios](CHANGELOG.md)
+Con esta herramienta podrás:
 
----
+*   Modificar opciones de hardware: Cambiar el comportamiento de los puertos USB, las teclas de función, los pitidos de arranque o las opciones de virtualización y seguridad.
+*   Editar fechas y horas: Ajustar de manera accesible y segura el reloj interno de la placa base, con protecciones para evitar ingresar fechas no válidas.
+*   Alterar el orden de arranque: Ver y cambiar en qué orden el equipo intenta arrancar el sistema operativo (muy útil si necesitas arrancar desde un pendrive o lectora de CD/DVD).
+*   Supervisión segura: El complemento filtra respuestas deformadas del sistema, realiza verificaciones en segundo plano y te avisa si el equipo soporta o rechaza los comandos, garantizando que tu placa base no sufra daños por interrupciones.
 
-## Versión en Español
+## Cómo usarlo
 
-Este complemento permite consultar y modificar la configuración del firmware UEFI de tu ordenador directamente desde el escritorio de Windows con NVDA, de forma totalmente accesible.
+Puedes acceder a sus funciones directamente desde el menú de herramientas de NVDA, buscando la opción BIOS Manager.
+Al abrirlo, la ventana cargará todas las configuraciones disponibles en una lista filtrable y buscable. Al pulsar Enter sobre cualquier opción, se abrirá un menú desplegable, un cuadro de texto numérico o una ventana especial (por ejemplo, para el orden de arranque) dependiendo del tipo de ajuste seleccionado.
 
-### ¿Para qué sirve?
-Normalmente, para cambiar algo en la configuración del firmware (como el orden de arranque para arrancar desde una unidad USB o activar la virtualización) hay que reiniciar la computadora y pulsar teclas a ciegas en una pantalla visual que no tiene sonido ni lector de pantalla.
+Cualquier cambio que realices se guardará primero en una lista de "cambios pendientes". Recién cuando estés seguro y presiones el botón de guardar, el complemento requerirá elevación de permisos (permisos de administrador) para inyectar tus modificaciones directamente en la placa base.
 
-Con este complemento no necesitas ayuda visual: abres la ventana dentro de Windows, buscas la opción que quieras con el teclado, haces el cambio y al reiniciar el ordenador la placa base ya tendrá tu configuración guardada.
+## Compatibilidad de hardware
 
-### BIOS heredada frente a UEFI
-Es importante distinguir entre la BIOS clásica y el firmware UEFI moderno:
-- La BIOS heredada (Legacy BIOS) no se puede controlar ni modificar desde el sistema operativo una vez iniciado.
-- El firmware UEFI moderno sí permite la comunicación y lectura/escritura de variables de configuración mediante la interfaz WMI de Windows.
-- Por tanto, este complemento funciona exclusivamente en sistemas con firmware UEFI nativo. No funcionará en equipos antiguos con BIOS clásica ni en equipos donde se haya activado el módulo de compatibilidad heredada (CSM).
+Debido a que el acceso a la BIOS varía enormemente entre fabricantes, este complemento está diseñado específicamente para computadoras de marca Lenovo (línea ThinkPad y algunos modelos IdeaPad/Legion) que exponen sus métodos WMI (Windows Management Instrumentation) en el espacio de nombres de Windows. Las funciones de reiniciar en UEFI sí son compatibles con todas las marcas.
 
-### Compatibilidad de computadoras
-Por la forma en que funciona la comunicación con la placa base en Windows:
-- Funciona en: Equipos Lenovo de gama profesional (portátiles ThinkPad, computadoras de escritorio ThinkCentre y estaciones de trabajo ThinkStation).
-- No funciona en: Equipos armados por piezas (clónicos) o computadoras portátiles domésticas que no traen el sistema de comunicación WMI del fabricante. Si lo abres en un equipo no compatible, te avisará de forma clara y segura.
+## Créditos
 
-### Advertencias de seguridad y uso responsable
-Modificar los parámetros del firmware del equipo es una operación delicada:
-- **Orden de arranque:** Desactivar o alterar el orden de las unidades de arranque puede impedir que Windows inicie normalmente.
-- **Seguridad y virtualización:** Modificar parámetros como Secure Boot, TPM, contraseñas de arranque o virtualización (VT-x / AMD-V) puede afectar al cifrado de unidad (como BitLocker) o a la integridad del arranque del sistema. Modifica únicamente los parámetros que conozcas.
-- **Protección en pantallas seguras:** Por razones de seguridad, el complemento bloquea automáticamente su carga en pantallas seguras de Windows (como la pantalla de bloqueo o el Control de cuentas de usuario) para evitar accesos no autorizados con privilegios elevados.
+Autora: Daliana. Desarrollado en base a los estándares de gestión WMI (https://learn.microsoft.com/en-us/windows/win32/wmisdk) proporcionados por Microsoft.
 
-### Opciones y atajos de teclado
-El complemento no asigna ningún atajo de teclado por defecto para no interferir con las órdenes nativas de NVDA (por ejemplo, el atajo nativo `NVDA + Shift + B` para verbalizar el estado de la batería).
+## Licencia y derechos de autor
 
-Todas las acciones se encuentran disponibles desde el menú de NVDA y pueden personalizarse con los atajos que desees:
-- **Menú NVDA > Herramientas > Gestor de BIOS y UEFI:**
-  - *Configuración de la BIOS / UEFI...:* Abre la ventana principal de ajustes.
-  - *Reiniciar en la configuración de UEFI / BIOS...:* Reinicia el sistema directamente en la pantalla de configuración del firmware UEFI.
-  - *Comprobar conflictos con otros complementos...:* Comprueba si existen atajos coincidentes o complementos duplicados.
-- **Asignación de atajos:** Puedes asignar tus propios atajos de teclado en el menú de NVDA > Preferencias > Gestos de entrada, dentro de la categoría "Gestor de BIOS y UEFI".
-- **Dentro de la ventana de ajustes:**
-  - *Búsqueda:* Escribe el término y pulsa `Intro` o el botón *Filtrar* para actualizar la lista. Pulsa *Limpiar* para restablecerla.
-  - *Orden de arranque:* Selecciona un dispositivo de la lista y utiliza `Alt + Flecha Arriba` o `Alt + Flecha Abajo` (o los botones *Subir* y *Bajar*) para cambiar su posición.
-  - *Confirmar y cancelar:* Pulsa `Aceptar` (o Intro fuera de campos de texto) para aplicar los cambios pendientes en la BIOS, o `Cancelar` (o Escape) para descartar los cambios en memoria y cerrar.
+Este complemento está protegido por derechos de autor y se distribuye bajo los términos de la Licencia Pública General de GNU (GPL), versión 2 o posterior. Eres libre de usar, modificar y distribuir este software bajo dichas condiciones. Puedes consultar el texto completo de la licencia en: https://www.gnu.org/licenses/gpl-2.0.html
 
----
-
-## English Version
-
-This add-on allows blind and visually impaired users to check and change UEFI firmware settings directly from Windows using NVDA.
-
-### Why this add-on exists
-Traditional firmware setup screens load before Windows starts. They are purely visual and lack speech support, making them inaccessible without sighted help. This add-on brings those settings into an accessible Windows dialog where NVDA can read and configure them smoothly.
-
-### Legacy BIOS vs. UEFI
-Legacy BIOS cannot be configured or controlled from the operating system once booted. Modern UEFI firmware allows communication and configuration through the Windows WMI interface. Therefore, this add-on works exclusively on systems running modern UEFI firmware and will not work on legacy BIOS machines or when Compatibility Support Module (CSM) legacy emulation is enabled.
-
-### Supported Computers
-- Supported: Lenovo business line computers (ThinkPad laptops, ThinkCentre desktops, ThinkStation workstations) with Lenovo WMI support.
-- Not supported: Custom-built desktop PCs and consumer laptops without vendor WMI firmware support. If run on an unsupported system, the add-on will notify you safely.
-
-### Security and Responsible Use
-Firmware configuration controls low-level hardware behavior:
-- **Boot order:** Modifying boot devices or their order can prevent Windows from starting.
-- **Security & Virtualization:** Altering options such as Secure Boot, TPM, passwords, or CPU virtualization (VT-x / AMD-V) may affect drive encryption (e.g., BitLocker) or virtual machines. Only modify settings you understand.
-- **Secure mode enforcement:** The add-on blocks execution on secure screens (e.g. UAC dialogs or lock screen) to prevent unauthorized high-privilege operations.
-
-### Commands and Shortcuts
-To prevent conflicts with native NVDA commands (such as `NVDA + Shift + B` for battery status), this add-on does not assign any default keyboard shortcut.
-
-All features are accessible from the NVDA menu and can be assigned custom shortcuts:
-- **NVDA Menu > Tools > BIOS and UEFI Manager:**
-  - *BIOS / UEFI Settings...:* Opens the configuration dialog.
-  - *Reboot to UEFI / BIOS settings...:* Reboots the machine directly into UEFI firmware setup.
-  - *Check conflicts with other add-ons...:* Checks for colliding shortcuts or duplicate firmware add-ons.
-- **Custom gestures:** Assign your preferred shortcuts in NVDA Menu > Preferences > Input Gestures under the "BIOS and UEFI Manager" category.
-- **Inside the settings dialog:**
-  - *Search:* Type your search query and press `Enter` or click the *Filter* button.
-  - *Boot order:* Select a device and press `Alt + Up Arrow` or `Alt + Down Arrow` (or click *Move up* / *Move down*) to adjust its position.
-  - *Apply and Cancel:* Click *OK* (or press Enter) to write pending changes to UEFI, or *Cancel* (or Escape) to dismiss changes and close.
+Aclaración sobre el uso de Inteligencia Artificial: Para programar partes de la lógica interna de este complemento y para redactar estos manuales me apoyé en herramientas de Inteligencia Artificial, tal como sugieren declarar las reglas de publicación de NVDA. De todos modos, cada línea de código y cada función fueron dirigidas, revisadas y probadas a fondo por mí.

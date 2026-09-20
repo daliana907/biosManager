@@ -82,7 +82,13 @@ class InformeDeCambios(unittest.TestCase):
     def test_rechazado_dice_el_motivo(self):
         ok, texto = Motor._informeDeCambios(self._datos("Access Denied", "Disable"), {"X": "Enable"})
         self.assertFalse(ok)
-        self.assertIn("Access Denied", texto)
+        self.assertIn("contraseña de supervisor de BIOS", texto)
+
+    def test_rechazado_por_otro_motivo_no_menciona_la_contraseña(self):
+        ok, texto = Motor._informeDeCambios(self._datos("Invalid Parameter", "Disable"), {"X": "Enable"})
+        self.assertFalse(ok)
+        self.assertIn("Invalid Parameter", texto)
+        self.assertNotIn("contraseña", texto)
 
     def test_fallo_al_grabar(self):
         ok, texto = Motor._informeDeCambios(
@@ -104,6 +110,44 @@ class InformeDeCambios(unittest.TestCase):
                                             {"X": "Enable", "Y": "Off"})
         self.assertFalse(ok)
         self.assertIn("Y", texto)
+
+
+class ContraseñaDeSupervisorEnApplySettings(unittest.TestCase):
+    """apply_settings debe incluir la contraseña en el script cuando se proporciona,
+    y no cambiar nada cuando no se proporciona ninguna (el caso de siempre)."""
+
+    def setUp(self):
+        self.backend = Motor()
+        self._script_capturado = {}
+
+        def _elevado_falso(ps_script, esperarSalida=True):
+            self._script_capturado["texto"] = ps_script
+            # Una respuesta minima valida para que apply_settings no falle despues.
+            return True, '{"SaveResult":"Success","Settings":[]}'
+
+        self.backend._ejecutarPowerShellElevado = _elevado_falso
+
+    def test_sin_contraseña_el_script_no_cambia(self):
+        self.backend.apply_settings({"X": "Enable"})
+        self.assertIn("$claveSupervisor = ''", self._script_capturado["texto"])
+
+    def test_con_contraseña_queda_incluida_en_el_script(self):
+        self.backend.apply_settings({"X": "Enable"}, password="miClave123")
+        self.assertIn("$claveSupervisor = 'miClave123'", self._script_capturado["texto"])
+
+    def test_la_contraseña_no_queda_en_el_registro(self):
+        # La comprobación real es indirecta: apply_settings registra si SE
+        # PROPORCIONÓ una contraseña, pero nunca su valor real.
+        import io
+        import logging as _logging
+        captura = io.StringIO()
+        handler = _logging.StreamHandler(captura)
+        wmi_backend.log.addHandler(handler)
+        try:
+            self.backend.apply_settings({"X": "Enable"}, password="miClaveSecreta")
+        finally:
+            wmi_backend.log.removeHandler(handler)
+        self.assertNotIn("miClaveSecreta", captura.getvalue())
 
 
 class PresentacionDelOrdenDeArranque(unittest.TestCase):
@@ -308,6 +352,21 @@ class SeguridadYAtajos(unittest.TestCase):
         # no debe tener ningún gesto asignado por defecto en el código.
         gesto = getattr(pluginMod.GlobalPlugin.script_openBiosManager, "gesture", None)
         self.assertIsNone(gesto)
+
+
+class DeserializacionDeAjustes(unittest.TestCase):
+    """get_all_settings debe procesar un único ajuste aunque PowerShell lo devuelva como objeto plano."""
+
+    def test_un_solo_ajuste_en_formato_dict_se_convierte_en_lista_correctamente(self):
+        backend = Motor()
+        backend._ejecutarPowerShellElevado = lambda *a, **k: (
+            True,
+            '{"Name": "SecureBoot", "Value": "Enable", "Options": "Enable,Disable"}'
+        )
+        res = backend.get_all_settings()
+        self.assertEqual(len(res), 1)
+        self.assertEqual(res[0]["name"], "SecureBoot")
+        self.assertEqual(res[0]["options"], ["Enable", "Disable"])
 
 
 if __name__ == "__main__":

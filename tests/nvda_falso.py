@@ -87,6 +87,11 @@ def instalar():
                       "EVT_LIST_ITEM_SELECTED", "DEFAULT_DIALOG_STYLE", "RESIZE_BORDER"):
         setattr(wx, constante, _Cualquiera())
 
+    # Cualquier otra cosa de wx que algún complemento use y no esté en las listas
+    # de arriba (otro evento, otra constante, otra clase) recibe también un
+    # _Cualquiera en lugar de fallar con "module 'wx' has no attribute ...".
+    wx.__getattr__ = lambda nombre: _Cualquiera()
+
 
     # Módulos que solo existen en Windows. Ojo: NO se falsea msvcrt, porque
     # subprocess lo usa para saber si está en Windows y luego busca _winapi.

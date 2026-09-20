@@ -278,25 +278,43 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 					wx.OK | wx.ICON_WARNING,
 				)
 
+	def _on_dialog_closed(self):
+		"""Callback invocado cuando BiosManagerDialog se destruye para limpiar la referencia y restaurar el foco."""
+		self._dialog = None
+		try:
+			gui.mainFrame.postPopup()
+		except Exception:
+			pass
+
 	def open_dialog(self):
 		"""Abre la ventana de ajustes de la BIOS."""
 		log.info("BIOS Manager: Abriendo diálogo accesible de configuración de BIOS...")
-		if self._dialog and bool(self._dialog):
+		if self._dialog:
 			try:
-				log.info("BIOS Manager: El diálogo ya estaba abierto, trayéndolo al frente.")
-				self._dialog.Raise()
-				self._dialog.SetFocus()
-				return
+				if self._dialog.IsShown():
+					log.info("BIOS Manager: El diálogo ya estaba abierto, trayéndolo al frente.")
+					self._dialog.Raise()
+					self._dialog.SetFocus()
+					return
 			except Exception as e:
 				log.debug(f"BIOS Manager: Diálogo previo no válido, recreando: {e}")
 				self._dialog = None
 
+		gui.mainFrame.prePopup()
 		try:
 			log.info("BIOS Manager: Instanciando BiosManagerDialog...")
-			self._dialog = BiosManagerDialog(parent=gui.mainFrame, backend=self.backend)
+			self._dialog = BiosManagerDialog(
+				parent=gui.mainFrame,
+				backend=self.backend,
+				on_close_callback=self._on_dialog_closed,
+			)
 			self._dialog.Show()
 			log.info("BIOS Manager: Diálogo mostrado con éxito.")
 		except Exception as e:
+			try:
+				gui.mainFrame.postPopup()
+			except Exception:
+				pass
 			log.error(f"BIOS Manager: Error abriendo ventana de BIOS: {e}", exc_info=True)
 			# Translators: Mensaje cuando falla la apertura de la ventana de configuración de la BIOS.
 			ui.message(_("Error al abrir la ventana de BIOS: {error}").format(error=e))
@@ -320,7 +338,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 	def script_checkConflicts(self, gesture: inputCore.InputGesture):
 		"""Ejecuta una auditoría interactiva de conflictos de atajos de teclado."""
 		log.info("BIOS Manager: Script de comprobación de conflictos ejecutado desde atajo de teclado.")
-		self._checkAddonConflicts(interactive=True)
+		wx.CallAfter(self._checkAddonConflicts, interactive=True)
 
 	@scriptHandler.script(
 		# Translators: Descripción del script para reiniciar el equipo en la configuración UEFI.
@@ -330,11 +348,15 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 	def script_rebootToUefi(self, gesture: inputCore.InputGesture):
 		"""Solicita confirmación al usuario y reinicia el equipo hacia la pantalla de UEFI."""
 		log.info("BIOS Manager: Script de reinicio a UEFI ejecutado desde atajo de teclado.")
-		# Translators: Pregunta de confirmación antes de reiniciar el equipo para entrar a UEFI.
-		pregunta = _("¿Seguro que deseas reiniciar el equipo ahora mismo para acceder a la BIOS / UEFI?")
-		# Translators: Título del diálogo de confirmación para reiniciar a UEFI.
-		titulo = _("Reiniciar a UEFI - Gestor de BIOS")
-		if gui.messageBox(pregunta, titulo, wx.YES_NO | wx.ICON_QUESTION) == wx.YES:
-			ok, msg = self.backend.reboot_to_uefi()
-			if not ok:
-				ui.message(msg)
+		
+		def prompt_and_reboot():
+			# Translators: Pregunta de confirmación antes de reiniciar el equipo para entrar a UEFI.
+			pregunta = _("¿Seguro que deseas reiniciar el equipo ahora mismo para acceder a la BIOS / UEFI? Los programas abiertos se cerrarán sin guardar cambios pendientes.")
+			# Translators: Título del diálogo de confirmación para reiniciar a UEFI.
+			titulo = _("Reiniciar a UEFI - Gestor de BIOS")
+			if gui.messageBox(pregunta, titulo, wx.YES_NO | wx.ICON_QUESTION) == wx.YES:
+				ok, msg = self.backend.reboot_to_uefi()
+				if not ok:
+					ui.message(msg)
+					
+		wx.CallAfter(prompt_and_reboot)

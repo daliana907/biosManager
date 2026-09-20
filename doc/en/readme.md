@@ -58,8 +58,17 @@ Assign your preferred keyboard shortcuts under NVDA Menu > Preferences > Input G
 - Search: Type the search term and press Enter or the Filter button. Press Clear to reset.
 - Boot Order: Select a device and use Alt + Up Arrow or Alt + Down Arrow (or Move Up / Move Down buttons) to change its position.
 - Confirm and Cancel: Press OK (or Enter outside text fields) to apply pending BIOS changes, or Cancel (or Escape) to discard changes and close.
+- BIOS Supervisor Password: if your machine has a BIOS administrator password set, type it into the password field before pressing OK; if you don't have one, leave it blank. The password is never saved anywhere — it's only used while the window is open.
 
 ---
+
+## What's new in 1.10.0 (18 September 2026)
+
+- BIOS supervisor password support: machines with a firmware administrative password now feature a dedicated password field in the settings dialog. The add-on detects the appropriate communication method for your hardware automatically, handling the password exclusively in temporary memory.
+- Preserved changes on firmware rejection: if the BIOS declines to save adjustments due to missing or incorrect password credentials, the dialog remains open with your pending settings preserved so you can correct the entry without reconfiguring.
+- Descriptive access denied messaging: clear feedback explaining that the operation requires an active BIOS supervisor password.
+- Improved stability on dialog exit: resolved an edge case where dismissing the dialog while background settings were still loading could cause UI issues.
+- Safer UEFI firmware reboot: the reboot action now ensures open applications close gracefully and prompts you beforehand to save open work.
 
 ## What's new in 1.9.1 (13 September 2026)
 

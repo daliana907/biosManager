@@ -16,7 +16,7 @@ import ui
 class BiosManagerDialog(wx.Dialog):
 	"""Diálogo accesible para explorar, buscar y modificar parámetros del firmware UEFI."""
 
-	def __init__(self, parent, backend):
+	def __init__(self, parent, backend, on_close_callback=None):
 		"""Prepara la ventana: memoria de trabajo y botones Aceptar y Cancelar.
 
 		Guarda el puente con la BIOS y crea las tres listas que la ventana usa
@@ -25,15 +25,29 @@ class BiosManagerDialog(wx.Dialog):
 		de la ventana lo monta makeSettings.
 		"""
 		self.backend = backend
+		self._on_close_callback = on_close_callback
 		self._all_settings = []
 		self._filtered_settings = []
 		self._pending_changes = {}
+		self._closing = False
 		# Translators: Título de la ventana principal de configuración de BIOS/UEFI.
 		super().__init__(parent, title=_("Configuración de la BIOS / UEFI"), size=(800, 600))
 		
 		main_sizer = wx.BoxSizer(wx.VERTICAL)
 		self.makeSettings(main_sizer)
-		
+
+		# Campo opcional para la contraseña de supervisor de BIOS. Solo hace falta
+		# completarlo si el equipo tiene una configurada; si no, se deja vacío y
+		# todo funciona exactamente como antes. No se guarda en ningún lado: vive
+		# solo en esta ventana, mientras está abierta.
+		pass_sizer = wx.BoxSizer(wx.HORIZONTAL)
+		# Translators: Etiqueta del campo opcional de contraseña de supervisor de BIOS.
+		pass_lbl = wx.StaticText(self, label=_("&Contraseña de supervisor de BIOS (dejar en blanco si no se tiene una):"))
+		self.txt_bios_password = wx.TextCtrl(self, style=wx.TE_PASSWORD)
+		pass_sizer.Add(pass_lbl, 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 8)
+		pass_sizer.Add(self.txt_bios_password, 1, wx.EXPAND)
+		main_sizer.Add(pass_sizer, 0, wx.EXPAND | wx.ALL, 8)
+
 		# Standard Dialog Buttons
 		btn_sizer = wx.StdDialogButtonSizer()
 		# Translators: Etiqueta del botón Aceptar del diálogo.
@@ -50,6 +64,7 @@ class BiosManagerDialog(wx.Dialog):
 		self.SetAffirmativeId(wx.ID_OK)
 		self.SetEscapeId(wx.ID_CANCEL)
 		self.Bind(wx.EVT_CLOSE, self.onCancel)
+		self.Bind(wx.EVT_WINDOW_DESTROY, self._on_window_destroy)
 		main_sizer.Add(btn_sizer, 0, wx.EXPAND | wx.ALL, 10)
 		
 		self.SetSizer(main_sizer)
@@ -150,6 +165,8 @@ class BiosManagerDialog(wx.Dialog):
 		o si el equipo no tiene una BIOS Lenovo accesible por WMI. Antes de esto
 		el diálogo se quedaba con la lista vacía y sin decir nada.
 		"""
+		if self._closing:
+			return
 		log.warning("BIOS Manager: No se obtuvo ningún ajuste de la BIOS. Cerrando el diálogo.")
 		# Translators: Mensaje cuando no se pueden leer los ajustes de la BIOS del equipo.
 		ui.message(_(
@@ -157,10 +174,13 @@ class BiosManagerDialog(wx.Dialog):
 			"Puede que hayas cancelado el aviso de permisos de administrador, "
 			"o que este equipo no sea compatible."
 		))
+		self._closing = True
 		self.Destroy()
 
 	def _on_settings_loaded(self, settings):
 		"""Recibe la lista de ajustes leídos del firmware y puebla la interfaz de usuario."""
+		if self._closing:
+			return
 		if not settings:
 			self._on_unsupported()
 			return
@@ -189,8 +209,8 @@ class BiosManagerDialog(wx.Dialog):
 		"""
 		self.list_ctrl.DeleteAllItems()
 		for idx, item in enumerate(self._filtered_settings):
-			name = item["name"]
-			val = item["value"]
+			name = item.get("name") or "?"
+			val = item.get("value", "")
 			pending = self._pending_changes.get(name, "")
 
 			if name == self.ORDEN_DE_ARRANQUE:
@@ -199,18 +219,20 @@ class BiosManagerDialog(wx.Dialog):
 				# derecha solo lo que se movió.
 				val = self._resumenOrden(val)
 				if pending:
-					pending = self._resumenOrdenPendiente(item["value"], pending)
+					pending = self._resumenOrdenPendiente(item.get("value", ""), pending)
 
-			self.list_ctrl.InsertItem(idx, name)
-			self.list_ctrl.SetItem(idx, 1, val)
-			self.list_ctrl.SetItem(idx, 2, pending)
+			self.list_ctrl.InsertItem(idx, str(name))
+			self.list_ctrl.SetItem(idx, 1, str(val) if val is not None else "")
+			self.list_ctrl.SetItem(idx, 2, str(pending) if pending is not None else "")
 			
 		if self.list_ctrl.GetItemCount() > 0:
 			self.list_ctrl.Select(0)
 			self.list_ctrl.Focus(0)
 			item = self._filtered_settings[0]
-			opts = self.backend.get_selections(item["name"])
-			self._build_editor(item["name"], item["value"], opts)
+			item_name = item.get("name") or "?"
+			item_val = item.get("value", "")
+			opts = self.backend.get_selections(item_name)
+			self._build_editor(item_name, item_val, opts)
 		else:
 			self._clear_editor()
 
@@ -246,8 +268,8 @@ class BiosManagerDialog(wx.Dialog):
 		if not item:
 			return
 		
-		name = item["name"]
-		val = item["value"]
+		name = item.get("name") or "?"
+		val = item.get("value", "")
 		
 		# Ya tenemos las opciones en caché, así que construimos directamente (sin lag para NVDA)
 		opts = self.backend.get_selections(name)
@@ -503,9 +525,10 @@ class BiosManagerDialog(wx.Dialog):
 		"""Convierte 'A:B:C' en '1, A. 2, B. 3, C.', que con lector de pantalla se
 		sigue sin perder la cuenta, en vez de seis nombres pegados con dos puntos.
 		"""
-		partes = [d.strip() for d in valor.split(":") if d.strip()]
+		texto = str(valor or "").strip()
+		partes = [d.strip() for d in texto.split(":") if d.strip()]
 		if not partes:
-			return valor
+			return texto
 		return ". ".join(f"{i + 1}, {d}" for i, d in enumerate(partes)) + "."
 
 	@staticmethod
@@ -516,9 +539,10 @@ class BiosManagerDialog(wx.Dialog):
 		chorizo de seis nombres que hay que escuchar entero cada vez que se pasa por
 		encima del ajuste.
 		"""
-		partes = [d.strip() for d in valor.split(":") if d.strip()]
+		texto = str(valor or "").strip()
+		partes = [d.strip() for d in texto.split(":") if d.strip()]
 		if not partes:
-			return valor
+			return texto
 		if len(partes) == 1:
 			# Translators: Resumen para la lista cuando solo hay un dispositivo de arranque.
 			return _("Solo {dispositivo}.").format(dispositivo=partes[0])
@@ -534,10 +558,12 @@ class BiosManagerDialog(wx.Dialog):
 		Dice "Quedaría", que la columna de la BIOS nunca dice, así que las dos no se
 		pueden confundir aunque nombren el mismo dispositivo.
 		"""
-		a = [d.strip() for d in antes.split(":") if d.strip()]
-		b = [d.strip() for d in despues.split(":") if d.strip()]
+		texto_antes = str(antes or "").strip()
+		texto_despues = str(despues or "").strip()
+		a = [d.strip() for d in texto_antes.split(":") if d.strip()]
+		b = [d.strip() for d in texto_despues.split(":") if d.strip()]
 		if not b:
-			return despues
+			return texto_despues
 		# Translators: Resumen del primer dispositivo en el nuevo orden pendiente.
 		texto = _("Quedaría primero {dispositivo}.").format(dispositivo=b[0])
 		if sorted(a) == sorted(b):
@@ -555,10 +581,12 @@ class BiosManagerDialog(wx.Dialog):
 		esas marcas de "antes", así que las dos columnas no se pueden confundir por
 		mucho que tengan los mismos nombres.
 		"""
-		a = [d.strip() for d in antes.split(":") if d.strip()]
-		b = [d.strip() for d in despues.split(":") if d.strip()]
+		texto_antes = str(antes or "").strip()
+		texto_despues = str(despues or "").strip()
+		a = [d.strip() for d in texto_antes.split(":") if d.strip()]
+		b = [d.strip() for d in texto_despues.split(":") if d.strip()]
 		if not b:
-			return despues
+			return texto_despues
 		partes = []
 		for puesto, dispositivo in enumerate(b, start=1):
 			if dispositivo in a and a.index(dispositivo) + 1 != puesto:
@@ -577,8 +605,10 @@ class BiosManagerDialog(wx.Dialog):
 		No intenta adivinar qué movimientos hiciste: dice, sin interpretar, cuáles
 		quedaron en un puesto distinto y de dónde venían.
 		"""
-		a = [d.strip() for d in antes.split(":") if d.strip()]
-		b = [d.strip() for d in despues.split(":") if d.strip()]
+		texto_antes = str(antes or "").strip()
+		texto_despues = str(despues or "").strip()
+		a = [d.strip() for d in texto_antes.split(":") if d.strip()]
+		b = [d.strip() for d in texto_despues.split(":") if d.strip()]
 		if not a or sorted(a) != sorted(b):
 			return ""
 		# Translators: Dispositivo movido con su posición actual y anterior.
@@ -638,7 +668,7 @@ class BiosManagerDialog(wx.Dialog):
 		Con la lista de Subir y Bajar no debería fallar nunca, porque solo se
 		reordena lo que ya había. Devuelve el texto del problema, o None si está bien.
 		"""
-		nuevos = [d for d in val.split(":") if d.strip()]
+		nuevos = [d for d in str(val or "").split(":") if d.strip()]
 		originales = list(getattr(self, "_bootOriginal", []))
 		if not originales or sorted(nuevos) == sorted(originales):
 			return None
@@ -689,13 +719,22 @@ class BiosManagerDialog(wx.Dialog):
 				sep = getattr(self, "_date_sep", "/")
 				val = f"{str(y).zfill(4)}{sep}{str(m).zfill(2)}{sep}{str(d).zfill(2)}"
 			elif self.editor_type == "time":
-				h = str(self.sp_h.GetValue()).zfill(2)
-				m = str(self.sp_m.GetValue()).zfill(2)
+				try:
+					h = max(0, min(23, int(self.sp_h.GetValue())))
+				except (ValueError, TypeError):
+					h = 0
+				try:
+					m = max(0, min(59, int(self.sp_m.GetValue())))
+				except (ValueError, TypeError):
+					m = 0
 				if getattr(self, "_time_has_seconds", True) and getattr(self, "sp_s", None):
-					s = str(self.sp_s.GetValue()).zfill(2)
-					val = f"{h}:{m}:{s}"
+					try:
+						s = max(0, min(59, int(self.sp_s.GetValue())))
+					except (ValueError, TypeError):
+						s = 0
+					val = f"{str(h).zfill(2)}:{str(m).zfill(2)}:{str(s).zfill(2)}"
 				else:
-					val = f"{h}:{m}"
+					val = f"{str(h).zfill(2)}:{str(m).zfill(2)}"
 			elif self.editor_type == "spin":
 				val = str(self.ctrl.GetValue())
 			else:
@@ -820,6 +859,7 @@ class BiosManagerDialog(wx.Dialog):
 			log.info("BIOS Manager: Diálogo cerrado con Aceptar sin cambios pendientes.")
 			# Translators: Mensaje cuando no hay cambios que guardar al pulsar Aceptar.
 			ui.message(_("No hay cambios que guardar."))
+			self._closing = True
 			try:
 				self.Destroy()
 			except (RuntimeError, wx.PyDeadObjectError):
@@ -827,6 +867,7 @@ class BiosManagerDialog(wx.Dialog):
 			return
 		
 		cambios = dict(self._pending_changes)
+		clave = self.txt_bios_password.GetValue()
 		log.info(f"BIOS Manager: Guardando {len(cambios)} cambio(s) en BIOS (en segundo plano)...")
 		self._guardando = True
 		for boton in ("btn_ok", "btn_cancel"):
@@ -836,12 +877,12 @@ class BiosManagerDialog(wx.Dialog):
 				pass
 		# Translators: Notificación de inicio de aplicación de cambios en la BIOS.
 		ui.message(_("Aplicando los cambios en la BIOS. Puede tardar unos segundos; te aviso al terminar."))
-		threading.Thread(target=self._guardarEnSegundoPlano, args=(cambios,), daemon=True).start()
+		threading.Thread(target=self._guardarEnSegundoPlano, args=(cambios, clave), daemon=True).start()
 
-	def _guardarEnSegundoPlano(self, cambios):
+	def _guardarEnSegundoPlano(self, cambios, clave=""):
 		"""Aplica los cambios sin bloquear NVDA. Corre en un hilo aparte."""
 		try:
-			ok, msg = self.backend.apply_settings(cambios)
+			ok, msg = self.backend.apply_settings(cambios, clave)
 		except Exception as e:
 			log.error(f"BIOS Manager: Error inesperado al aplicar los cambios: {e}", exc_info=True)
 			# Translators: Mensaje de error cuando ocurre una excepción inesperada guardando en la BIOS.
@@ -849,21 +890,30 @@ class BiosManagerDialog(wx.Dialog):
 		wx.CallAfter(self._alTerminarDeGuardar, ok, msg)
 
 	def _alTerminarDeGuardar(self, ok, msg):
-		"""Muestra el resultado y cierra. Vuelve al hilo de la ventana con CallAfter."""
+		"""Muestra el resultado. Si salió todo bien, cierra; si no, deja la ventana
+		abierta con los cambios pendientes intactos, para no obligar a rehacerlos
+		(por ejemplo, si lo que faltaba era escribir la contraseña de BIOS).
+		Vuelve al hilo de la ventana con CallAfter.
+		"""
 		self._guardando = False
 		log.info(f"BIOS Manager: Informe de la BIOS: {msg}")
 		if ok:
 			# Translators: Título del diálogo informativo tras aplicar cambios con éxito.
 			wx.MessageBox(msg, _("Cambios aplicados"), wx.OK | wx.ICON_INFORMATION)
+			self._pending_changes.clear()
+			self._closing = True
+			try:
+				self.Destroy()
+			except (RuntimeError, wx.PyDeadObjectError):
+				pass
 		else:
 			# Translators: Título del diálogo de advertencia cuando la BIOS rechazó cambios.
 			wx.MessageBox(msg, _("La BIOS no aceptó todos los cambios"), wx.OK | wx.ICON_WARNING)
-
-		self._pending_changes.clear()
-		try:
-			self.Destroy()
-		except (RuntimeError, wx.PyDeadObjectError):
-			pass
+			for boton in ("btn_ok", "btn_cancel"):
+				try:
+					getattr(self, boton).Enable()
+				except (AttributeError, RuntimeError):
+					pass
 
 	def onCancel(self, event=None):
 		"""Cierra la ventana descartando los cambios pendientes en memoria."""
@@ -878,7 +928,19 @@ class BiosManagerDialog(wx.Dialog):
 			self._pending_changes.clear()
 		else:
 			log.info("BIOS Manager: Diálogo cerrado con Cancelar.")
+		self._closing = True
 		try:
 			self.Destroy()
 		except (RuntimeError, wx.PyDeadObjectError):
 			pass
+
+	def _on_window_destroy(self, event=None):
+		"""Limpia referencias y notifica al invocador cuando la ventana es destruida."""
+		if callable(getattr(self, "_on_close_callback", None)):
+			try:
+				self._on_close_callback()
+			except Exception:
+				pass
+			self._on_close_callback = None
+		if event and hasattr(event, "Skip"):
+			event.Skip()
