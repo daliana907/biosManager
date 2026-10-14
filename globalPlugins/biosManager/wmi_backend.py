@@ -48,7 +48,7 @@ class WmiBackend:
 		try:
 			out_file_esc = out_file.replace("'", "''")
 			if esperarSalida:
-				final_script = ps_script + f"\nOut-File -FilePath '{out_file_esc}' -Encoding UTF8"
+				final_script = f"& {{\n{ps_script}\n}} | Out-File -FilePath '{out_file_esc}' -Encoding UTF8"
 			else:
 				final_script = ps_script
 				
@@ -62,8 +62,15 @@ $proc.StartInfo.Arguments = "-ExecutionPolicy Bypass -NoProfile -WindowStyle Hid
 $proc.StartInfo.Verb = "runas"
 $proc.StartInfo.WindowStyle = [System.Diagnostics.ProcessWindowStyle]::Hidden
 $proc.StartInfo.CreateNoWindow = $true
-$proc.Start() | Out-Null
-$proc.WaitForExit()
+try {{
+    if (-not $proc.Start()) {{
+        exit 1
+    }}
+    $proc.WaitForExit()
+    exit $proc.ExitCode
+}} catch {{
+    exit 1
+}}
 """
 			encoded_launcher = base64.b64encode(launcher_script.encode('utf-16le')).decode('ascii')
 			
@@ -81,15 +88,12 @@ $proc.WaitForExit()
 			log.info(f"BIOS Manager: El lanzador terminó con código {res.returncode}.")
 			
 			salida = None
-			if esperarSalida:
+			if esperarSalida and res is not None and res.returncode == 0:
 				salida = self._leerSalida(out_file)
-			return res.returncode == 0, salida
+			return res is not None and res.returncode == 0, salida
 		finally:
-			# Si el proceso fue cancelado o expiró, NO borramos el archivo de salida
-			# para evitar un ataque TOCTOU de Symlink LPE. Se deja a cargo de Windows
-			# la limpieza de temporales.
 			try:
-				if os.path.exists(out_file) and res is not None and res.returncode == 0:
+				if os.path.exists(out_file):
 					os.remove(out_file)
 			except Exception:
 				pass
@@ -119,7 +123,8 @@ $proc.WaitForExit()
 		"""Obtiene todos los ajustes de la BIOS (elevado) con logs detallados."""
 		log.info("Iniciando get_all_settings elevado...")
 		ps_script = '''
-$settings = Get-CimInstance -Namespace root\\wmi -ClassName Lenovo_BiosSetting
+$settings = Get-CimInstance -Namespace root\\wmi -ClassName Lenovo_BiosSetting -ErrorAction SilentlyContinue
+$selInstance = Get-CimInstance -Namespace root\\wmi -ClassName Lenovo_GetBiosSelections -ErrorAction SilentlyContinue
 $results = @()
 foreach ($s in $settings) {
     if ($s.CurrentSetting -match '^(.*?),(.*)$') {
@@ -127,12 +132,14 @@ foreach ($s in $settings) {
         $val = $matches[2].Trim()
         
         $options = ""
-        try {
-            $sel = Get-CimInstance -Namespace root\\wmi -ClassName Lenovo_GetBiosSelections | Invoke-CimMethod -MethodName GetBiosSelections -Arguments @{Item=$name} -ErrorAction SilentlyContinue
-            if ($sel -and $sel.Selections) {
-                $options = $sel.Selections
-            }
-        } catch {}
+        if ($selInstance) {
+            try {
+                $sel = $selInstance | Invoke-CimMethod -MethodName GetBiosSelections -Arguments @{Item=$name} -ErrorAction SilentlyContinue
+                if ($sel -and $sel.Selections) {
+                    $options = $sel.Selections
+                }
+            } catch {}
+        }
         
         $results += [PSCustomObject]@{
             Name = $name
@@ -141,7 +148,7 @@ foreach ($s in $settings) {
         }
     }
 }
-@($results) | ConvertTo-Json -Compress
+ConvertTo-Json -InputObject @($results) -Compress
 '''
 		try:
 			ok, salida = self._ejecutarPowerShellElevado(ps_script, esperarSalida=True)
@@ -159,6 +166,7 @@ foreach ($s in $settings) {
 				data = []
 			log.info(f"BIOS Manager: JSON parseado. {len(data)} ajustes encontrados.")
 
+			seen = set()
 			results = []
 			for item in data:
 				if not isinstance(item, dict):
@@ -167,8 +175,9 @@ foreach ($s in $settings) {
 				opts_list = [x.strip() for x in str(opts).split(",") if x.strip()] if opts else []
 				name = str(item.get("Name") or "").strip()
 				val = str(item.get("Value") or "").strip()
-				if not name:
+				if not name or name in seen:
 					continue
+				seen.add(name)
 				results.append({
 					"name": name,
 					"value": val,

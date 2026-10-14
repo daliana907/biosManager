@@ -74,5 +74,31 @@ class NoPerderCambiosSiLaBiosRechaza(unittest.TestCase):
         self.assertTrue(self.dialogo._closing)
 
 
+class ItemActivatedYFoco(unittest.TestCase):
+    """Pulsar Enter en un elemento de la lista pasa el foco al editor."""
+
+    def setUp(self):
+        self.dialogo = dialog.BiosManagerDialog(None, backend=object())
+
+    def test_on_item_activated_pasa_foco_al_control(self):
+        class FalsoControl:
+            enfocado = False
+
+            def SetFocus(self):
+                self.enfocado = True
+
+        falso = FalsoControl()
+        self.dialogo.ctrl = falso
+        self.dialogo._on_item_activated()
+        self.assertTrue(falso.enfocado)
+
+    def test_on_item_activated_sin_control_no_falla(self):
+        self.dialogo.ctrl = None
+        self.dialogo.boot_list = None
+        self.dialogo.sp_year = None
+        self.dialogo.sp_h = None
+        self.dialogo._on_item_activated()
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

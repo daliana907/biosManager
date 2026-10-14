@@ -121,6 +121,7 @@ class BiosManagerDialog(wx.Dialog):
 		# Translators: Encabezado de la columna con los cambios pendientes de guardar.
 		self.list_ctrl.InsertColumn(2, _("Pendiente de guardar"), width=140)
 		self.list_ctrl.Bind(wx.EVT_LIST_ITEM_SELECTED, self._on_item_selected)
+		self.list_ctrl.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self._on_item_activated)
 		
 		# Placeholder temporal
 		# Translators: Elemento temporal en la lista mientras se leen los ajustes de la BIOS.
@@ -240,6 +241,10 @@ class BiosManagerDialog(wx.Dialog):
 		"""Limpia el panel derecho de edición cuando no hay ningún ajuste seleccionado."""
 		self.right_sizer.Clear(True)
 		self._current_edit_name = None
+		self.ctrl = None
+		self.boot_list = None
+		self.sp_year = None
+		self.sp_h = None
 		# Translators: Texto mostrado en el panel derecho cuando no hay ningún ajuste seleccionado.
 		lbl = wx.StaticText(self.right_panel, label=_("Selecciona un ajuste en la lista para editarlo."))
 		self.right_sizer.Add(lbl, 0, wx.ALL, 10)
@@ -275,6 +280,17 @@ class BiosManagerDialog(wx.Dialog):
 		opts = self.backend.get_selections(name)
 		self._build_editor(name, val, opts)
 
+	def _on_item_activated(self, event=None):
+		"""Al pulsar Enter o hacer doble clic en un ajuste, pasa el foco al editor correspondiente."""
+		for attr in ("ctrl", "boot_list", "sp_year", "sp_h"):
+			c = getattr(self, attr, None)
+			if c:
+				try:
+					c.SetFocus()
+					return
+				except Exception:
+					pass
+
 	def _build_editor(self, name, val, opts):
 		"""Dibuja, a la derecha, el editor del ajuste seleccionado.
 
@@ -285,6 +301,10 @@ class BiosManagerDialog(wx.Dialog):
 		"Añadir a cambios pendientes".
 		"""
 		self.right_sizer.Clear(True)
+		self.ctrl = None
+		self.boot_list = None
+		self.sp_year = None
+		self.sp_h = None
 		
 		pending = self._pending_changes.get(name)
 		display_val = pending if pending else val
@@ -754,7 +774,7 @@ class BiosManagerDialog(wx.Dialog):
 		if not name:
 			return None
 		val = self._valorDelEditor()
-		if not val:
+		if val is None:
 			return None
 		if self._pending_changes.get(name) == val:
 			return None
@@ -773,7 +793,7 @@ class BiosManagerDialog(wx.Dialog):
 		name = self._current_edit_name
 		val = self._valorDelEditor()
 
-		if not val:
+		if val is None:
 			return
 
 		if self.editor_type == "bootorder_list":

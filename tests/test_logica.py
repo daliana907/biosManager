@@ -6,7 +6,9 @@ arranque y escapado de valores. Son las que se pueden romper en silencio.
 
 Ejecutar con:   python -m unittest discover -s tests -v
 """
+import base64
 import os
+import re
 import sys
 import unittest
 
@@ -367,6 +369,50 @@ class DeserializacionDeAjustes(unittest.TestCase):
         self.assertEqual(len(res), 1)
         self.assertEqual(res[0]["name"], "SecureBoot")
         self.assertEqual(res[0]["options"], ["Enable", "Disable"])
+
+    def test_deduplicacion_de_ajustes_con_mismo_nombre(self):
+        backend = Motor()
+        backend._ejecutarPowerShellElevado = lambda *a, **k: (
+            True,
+            '[{"Name": "SecureBoot", "Value": "Enable", "Options": "Enable,Disable"},'
+            ' {"Name": "SecureBoot", "Value": "Enable", "Options": "Enable,Disable"}]'
+        )
+        res = backend.get_all_settings()
+        self.assertEqual(len(res), 1)
+        self.assertEqual(res[0]["name"], "SecureBoot")
+
+
+class PipelinePowerShellElevado(unittest.TestCase):
+    """El script elevado debe envolver el bloque de comandos antes de enviarlo a Out-File."""
+
+    def test_script_se_envuelve_en_scriptblock_para_pipeline(self):
+        backend = Motor()
+        capturado = []
+
+        def mock_run(cmd, **kwargs):
+            capturado.append(cmd)
+
+            class Res:
+                returncode = 0
+            return Res()
+
+        backend._leerSalida = lambda path: "[]"
+        import subprocess
+        orig_run = subprocess.run
+        subprocess.run = mock_run
+        try:
+            backend._ejecutarPowerShellElevado("Write-Output 'hola'", esperarSalida=True)
+            self.assertTrue(len(capturado) > 0)
+            import base64
+            launcher_b64 = capturado[0][-1]
+            launcher_bytes = base64.b64decode(launcher_b64)
+            launcher_str = launcher_bytes.decode("utf-16le")
+            m = re.search(r'-EncodedCommand\s+([A-Za-z0-9+/=]+)', launcher_str)
+            self.assertIsNotNone(m)
+            final_script = base64.b64decode(m.group(1)).decode("utf-16le")
+            self.assertIn("& {\nWrite-Output 'hola'\n} | Out-File", final_script)
+        finally:
+            subprocess.run = orig_run
 
 
 if __name__ == "__main__":

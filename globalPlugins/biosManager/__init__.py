@@ -51,21 +51,21 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 
 			# Translators: Opción del menú para abrir la configuración de BIOS/UEFI.
 			self._itemConfig = self._subMenu.Append(
-				wx.ID_ANY,
+				wx.Window.NewControlId(),
 				_("&Configuración de la BIOS / UEFI..."),
 				_("Abre la ventana accesible para consultar y configurar la BIOS/UEFI")
 			)
 
 			# Translators: Opción del menú para reiniciar directamente en el firmware UEFI.
 			self._itemReboot = self._subMenu.Append(
-				wx.ID_ANY,
+				wx.Window.NewControlId(),
 				_("&Reiniciar en la configuración de UEFI / BIOS..."),
 				_("Reinicia el equipo directamente en la pantalla de configuración del firmware UEFI")
 			)
 
 			# Translators: Opción del menú para comprobar conflictos con otros complementos.
 			self._itemConflicts = self._subMenu.Append(
-				wx.ID_ANY,
+				wx.Window.NewControlId(),
 				_("&Comprobar conflictos con otros complementos..."),
 				_("Comprueba si existen conflictos de atajos de teclado o complementos incompatibles con el Gestor de BIOS")
 			)
