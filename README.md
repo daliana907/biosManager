@@ -1,6 +1,7 @@
 # BIOS Manager
 
 * Autor: Daliana
+* Versión: 1.10.4
 * Compatibilidad con NVDA: 2023.1 en adelante
 * Descarga de la versión estable: https://github.com/daliana907/biosManager
 
@@ -10,7 +11,7 @@ La configuración de la BIOS históricamente ha sido una de las barreras de acce
 
 Con esta herramienta podrás:
 
-*   Modificar opciones de hardware: Cambiar el comportamiento de los puertos USB, las teclas de función, los pitidos de arranque o las opciones de virtualización y seguridad.
+*   Modificar opciones de hardware: Cambiar el comportamiento de los puertos USB, las teclas de función, los pitidos de arranque o las opciones de virtualización. Nota: Secure Boot y TPM están bloqueados por diseño (solo lectura) y no se pueden modificar con este complemento.
 *   Editar fechas y horas: Ajustar de manera accesible y segura el reloj interno de la placa base, con protecciones para evitar ingresar fechas no válidas.
 *   Alterar el orden de arranque: Ver y cambiar en qué orden el equipo intenta arrancar el sistema operativo (muy útil si necesitas arrancar desde un pendrive o lectora de CD/DVD).
 *   Supervisión segura: El complemento filtra respuestas deformadas del sistema, realiza verificaciones en segundo plano y te avisa si el equipo soporta o rechaza los comandos, garantizando que tu placa base no sufra daños por interrupciones.
@@ -22,9 +23,20 @@ Al abrirlo, la ventana cargará todas las configuraciones disponibles en una lis
 
 Cualquier cambio que realices se guardará primero en una lista de "cambios pendientes". Recién cuando estés seguro y presiones el botón de guardar, el complemento requerirá elevación de permisos (permisos de administrador) para inyectar tus modificaciones directamente en la placa base.
 
+## Seguridad al guardar
+
+*   Antes de guardar se resume la lista de cambios y se pide una confirmación adicional.
+*   Secure Boot, TPM, presencia física y contraseña de BIOS están bloqueados por seguridad. El orden de arranque sigue disponible, pero debes revisarlo con cuidado.
+*   La contraseña de supervisor solo se usa durante el guardado y no se conserva. Se crea una copia temporal antes de guardar y se elimina al finalizar.
+*   Reiniciar en UEFI deja 30 segundos para guardar el trabajo o cancelar con `shutdown /a`; no fuerza el cierre inmediato de los programas.
+
 ## Compatibilidad de hardware
 
 Debido a que el acceso a la BIOS varía enormemente entre fabricantes, este complemento está diseñado específicamente para computadoras de marca Lenovo (línea ThinkPad y algunos modelos IdeaPad/Legion) que exponen sus métodos WMI (Windows Management Instrumentation) en el espacio de nombres de Windows. Las funciones de reiniciar en UEFI sí son compatibles con todas las marcas.
+
+## Créditos de terceros
+
+*   Documentación de WMI de Lenovo/Microsoft (https://learn.microsoft.com/en-us/windows/win32/wmisdk). Solo equipos Lenovo con interfaces WMI de proveedor.
 
 ## Créditos
 

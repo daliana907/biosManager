@@ -1,7 +1,7 @@
 # BIOS and UEFI Manager for NVDA
 
 - Author: Daliana
-- Version: 1.9
+- Version: 1.10.4
 - Compatibility: NVDA 2023.1 and later
 - License: GNU GPL v2
 
@@ -34,7 +34,7 @@ Due to how motherboard communication works in Windows:
 Modifying firmware settings is a delicate operation:
 
 - Boot order: Changing boot devices or their order can prevent Windows from booting normally.
-- Security and virtualization: Modifying settings like Secure Boot, TPM, supervisor passwords, or virtualization (VT-x / AMD-V) can affect drive encryption (such as BitLocker) or system boot integrity. Only modify settings you understand.
+- Security and virtualization: Secure Boot and TPM are blocked by design (read-only) and cannot be modified with this add-on. Modifying other settings like supervisor passwords or virtualization (VT-x / AMD-V) can affect drive encryption (such as BitLocker) or system boot integrity. Only modify settings you understand.
 - Secure desktop protection: For security reasons, the add-on automatically disables itself on Windows secure screens (such as lock screens or User Account Control prompts) to prevent unauthorized privileged access.
 
 ### Options and Keyboard Shortcuts
@@ -53,6 +53,16 @@ Under NVDA Menu > Tools > BIOS and UEFI Manager:
 
 Assign your preferred keyboard shortcuts under NVDA Menu > Preferences > Input Gestures, in the "BIOS and UEFI Manager" category.
 
+### Saving Safely
+
+- Before saving, the add-on summarizes pending settings and asks for an additional confirmation.
+- Secure Boot, TPM, physical-presence settings, and the BIOS password are blocked by design. They are read-only when exposed by the firmware.
+- Boot order remains available, but an incorrect order can prevent the computer from starting. Review it carefully before confirming.
+- A supervisor password, when required, is used only while saving. It is not stored by NVDA or written to its log.
+- A temporary snapshot is prepared before saving and removed when the operation finishes, including when firmware rejects a change.
+- Reboot to UEFI does not force applications to close immediately: Windows is given 30 seconds to save work or cancel the reboot with `shutdown /a`.
+- The window stays open while settings are being saved so that an operation is never left without feedback.
+
 ### Keyboard Shortcuts inside the Settings Window
 
 - Search: Type the search term and press Enter or the Filter button. Press Clear to reset.
@@ -61,6 +71,29 @@ Assign your preferred keyboard shortcuts under NVDA Menu > Preferences > Input G
 - BIOS Supervisor Password: if your machine has a BIOS administrator password set, type it into the password field before pressing OK; if you don't have one, leave it blank. The password is never saved anywhere — it's only used while the window is open.
 
 ---
+
+## What's new in 1.10.4
+
+- Critical PowerShell backend execution fix that prevented settings from being read on Windows 11 due to disconnected output redirection.
+- Substantial speedup reading Lenovo WMI options (GetBiosSelections), halving load time.
+- Robust collection and JSON serialization handling for empty, single-item, and multi-item setting lists.
+- Automatic deduplication of BIOS settings reported by the firmware.
+- Modern wxWidgets 4.2+ compatibility (NVDA 2024+) using dynamically generated control IDs in submenus.
+- Support for opening the editor by pressing Enter on the BIOS settings list.
+- Full compatibility guaranteed on both Windows 10 and Windows 11.
+
+## What's new in 1.10.3
+
+- Maintenance and stability improvements (no behavior changes).
+
+## What's new in 1.10.2
+
+- Maintenance and stability improvements (no behavior changes).
+
+## What's new in 1.10.1
+
+- Hardened date and time setting from the graphical interface.
+- Rigorous filtering of malformed WMI responses.
 
 ## What's new in 1.10.0 (18 September 2026)
 
@@ -86,6 +119,10 @@ Assign your preferred keyboard shortcuts under NVDA Menu > Preferences > Input G
 - Faster search: typing in the search box dynamically filters the list by both setting name and value, instantly loading the right control to edit it.
 - More reliable reboot to BIOS: rebooting directly into BIOS/UEFI setup checks for required permissions and announces clearly whether your computer supports this feature.
 - Automatic system cleanup: installing or uninstalling the add-on completely removes temporary files without leaving leftover traces.
+
+### Third-party credits
+
+*   Lenovo/Microsoft WMI documentation (https://learn.microsoft.com/en-us/windows/win32/wmisdk). Only Lenovo machines exposing vendor WMI interfaces.
 
 ### Credits and License
 - Author: Daliana.

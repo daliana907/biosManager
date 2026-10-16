@@ -74,7 +74,8 @@ def instalar():
     _modulo("versionInfo", version_year=2026, version_major=2026, version_minor=3)
 
     wx = _modulo("wx", NOT_FOUND=-1, OK=1, CANCEL=2, ICON_INFORMATION=4,
-                 ICON_WARNING=8, ICON_ERROR=16)
+                 ICON_WARNING=8, ICON_ERROR=16,
+                 PyDeadObjectError=type("PyDeadObjectError", (RuntimeError,), {}))
     for nombre in ("Dialog", "Panel", "Button", "CheckBox", "StaticText", "TextCtrl",
                    "ListCtrl", "ListBox", "Choice", "SpinCtrl", "BoxSizer", "Colour",
                    "StaticBox", "StaticBoxSizer", "ScrolledWindow", "StdDialogButtonSizer",

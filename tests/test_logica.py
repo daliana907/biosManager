@@ -135,7 +135,8 @@ class ContraseñaDeSupervisorEnApplySettings(unittest.TestCase):
 
     def test_con_contraseña_queda_incluida_en_el_script(self):
         self.backend.apply_settings({"X": "Enable"}, password="miClave123")
-        self.assertIn("$claveSupervisor = 'miClave123'", self._script_capturado["texto"])
+        self.assertNotIn("miClave123", self._script_capturado["texto"])
+        self.assertIn("BIOS_PWD_FILE", self._script_capturado["texto"])
 
     def test_la_contraseña_no_queda_en_el_registro(self):
         # La comprobación real es indirecta: apply_settings registra si SE

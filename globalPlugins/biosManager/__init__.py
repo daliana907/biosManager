@@ -6,7 +6,6 @@
 
 import re
 import threading
-import time
 import wx
 import addonHandler
 addonHandler.initTranslation()
@@ -34,7 +33,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 
 	def __init__(self):
 		"""Arranca el complemento en cuanto NVDA lo carga."""
-		if getattr(globalVars.appArgs, "secureMode", False):
+		if getattr(getattr(globalVars, "appArgs", None), "secureMode", False):
 			raise globalPluginHandler.ActionCancelled("biosManager does not run in secure mode")
 
 		super().__init__()
@@ -43,6 +42,9 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 		log.info(f"BIOS Manager: Inicializando complemento (v{ver_str})...")
 		self.backend = WmiBackend()
 		self._dialog = None
+		self._stopping = threading.Event()
+		# H7: parear pre/postPopup para diálogo modeless.
+		self._pre_ok = False
 
 		# Agregar submenú organizado en el menú Herramientas de NVDA
 		try:
@@ -91,12 +93,24 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 	def terminate(self):
 		"""Deja todo como estaba cuando NVDA descarga el complemento."""
 		log.info("BIOS Manager: Finalizando complemento...")
+		if hasattr(self, "_stopping"):
+			self._stopping.set()
 		if hasattr(self, "_dialog") and self._dialog:
+			# H6: no destruir el diálogo en mitad de un guardado; el hilo de guardado lo cerrará.
 			try:
-				self._dialog.Destroy()
+				if bool(getattr(self._dialog, "_guardando", False)):
+					log.warning("BIOS Manager: terminate con guardado en marcha; no se destruye el diálogo para no corromper la BIOS.")
+				else:
+					if hasattr(self._dialog, "IsModal") and self._dialog.IsModal():
+						self._dialog.EndModal(wx.ID_CANCEL)
+					self._dialog.Destroy()
+					self._dialog = None
 			except Exception as e:
 				log.debug(f"BIOS Manager: Error destruyendo diálogo en terminate: {e}")
-			self._dialog = None
+				try:
+					self._dialog = None
+				except Exception:
+					pass
 
 		try:
 			if hasattr(self, "_itemConfig") and self._itemConfig:
@@ -134,8 +148,10 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 	def _startupBackgroundWorker(self):
 		"""Comprueba en segundo plano tras el arranque de NVDA si existen conflictos con otros complementos."""
 		try:
-			time.sleep(3.0)
-			self._checkAddonConflicts(interactive=False)
+			if hasattr(self, "_stopping") and self._stopping.wait(3.0):
+				return
+			if not getattr(self, "_stopping", threading.Event()).is_set():
+				self._checkAddonConflicts(interactive=False)
 		except Exception as e:
 			log.error(f"BIOS Manager: Error durante la comprobación de conflictos: {e}", exc_info=True)
 
@@ -148,11 +164,15 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 		conflicts = []
 		warnings = []
 
+		def _normalizarGesto(gesto_str):
+			s = str(gesto_str).strip().lower().replace(" ", "")
+			return re.sub(r'\(.*?\)', '', s)
+
 		our_gestures_map = {}
 		g_map = getattr(self, "_gestureMap", {}) or {}
 		if g_map:
 			for g_id, script_ref in g_map.items():
-				norm_g = str(g_id).strip().lower().replace(" ", "")
+				norm_g = _normalizarGesto(g_id)
 				desc = getattr(script_ref, "description", "") or getattr(script_ref, "__doc__", "") or getattr(script_ref, "__name__", str(script_ref))
 				our_gestures_map[norm_g] = desc
 
@@ -196,7 +216,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 					g_map = getattr(plugin, "_ScriptableObject__gestures", {}) or {}
 
 				for g_id, script_ref in g_map.items():
-					norm_g = str(g_id).strip().lower().replace(" ", "")
+					norm_g = _normalizarGesto(g_id)
 					if norm_g in our_gestures_map:
 						script_name = getattr(script_ref, "__name__", str(script_ref))
 						our_feature = our_gestures_map[norm_g]
@@ -216,7 +236,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 			if cmd_obj:
 				cmd_map = getattr(cmd_obj, "_gestureMap", {}) or {}
 				for cmd_g, cmd_script in cmd_map.items():
-					norm_cmd = str(cmd_g).strip().lower().replace(" ", "")
+					norm_cmd = _normalizarGesto(cmd_g)
 					if norm_cmd in our_gestures_map:
 						our_feature = our_gestures_map[norm_cmd]
 						cmd_desc = getattr(cmd_script, "description", "") or getattr(cmd_script, "__name__", str(cmd_script))
@@ -281,10 +301,13 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 	def _on_dialog_closed(self):
 		"""Callback invocado cuando BiosManagerDialog se destruye para limpiar la referencia y restaurar el foco."""
 		self._dialog = None
-		try:
-			gui.mainFrame.postPopup()
-		except Exception:
-			pass
+		# H7: solo postPopup si prePopup tuvo éxito.
+		if getattr(self, "_pre_ok", False):
+			try:
+				gui.mainFrame.postPopup()
+			except Exception:
+				pass
+			self._pre_ok = False
 
 	def open_dialog(self):
 		"""Abre la ventana de ajustes de la BIOS."""
@@ -296,11 +319,20 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 					self._dialog.Raise()
 					self._dialog.SetFocus()
 					return
+				else:
+					if hasattr(self._dialog, "IsModal") and self._dialog.IsModal():
+						self._dialog.EndModal(wx.ID_CANCEL)
+					self._dialog.Destroy()
 			except Exception as e:
 				log.debug(f"BIOS Manager: Diálogo previo no válido, recreando: {e}")
-				self._dialog = None
+			self._dialog = None
 
-		gui.mainFrame.prePopup()
+		try:
+			gui.mainFrame.prePopup()
+			self._pre_ok = True
+		except Exception as e:
+			log.debug(f"BIOS Manager: prePopup falló: {e}")
+			self._pre_ok = False
 		try:
 			log.info("BIOS Manager: Instanciando BiosManagerDialog...")
 			self._dialog = BiosManagerDialog(
@@ -312,9 +344,11 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 			log.info("BIOS Manager: Diálogo mostrado con éxito.")
 		except Exception as e:
 			try:
-				gui.mainFrame.postPopup()
+				if getattr(self, "_pre_ok", False):
+					gui.mainFrame.postPopup()
 			except Exception:
 				pass
+			self._pre_ok = False
 			log.error(f"BIOS Manager: Error abriendo ventana de BIOS: {e}", exc_info=True)
 			# Translators: Mensaje cuando falla la apertura de la ventana de configuración de la BIOS.
 			ui.message(_("Error al abrir la ventana de BIOS: {error}").format(error=e))
@@ -350,13 +384,16 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 		log.info("BIOS Manager: Script de reinicio a UEFI ejecutado desde atajo de teclado.")
 		
 		def prompt_and_reboot():
-			# Translators: Pregunta de confirmación antes de reiniciar el equipo para entrar a UEFI.
-			pregunta = _("¿Seguro que deseas reiniciar el equipo ahora mismo para acceder a la BIOS / UEFI? Los programas abiertos se cerrarán sin guardar cambios pendientes.")
-			# Translators: Título del diálogo de confirmación para reiniciar a UEFI.
-			titulo = _("Reiniciar a UEFI - Gestor de BIOS")
-			if gui.messageBox(pregunta, titulo, wx.YES_NO | wx.ICON_QUESTION) == wx.YES:
-				ok, msg = self.backend.reboot_to_uefi()
-				if not ok:
-					ui.message(msg)
+			try:
+				# Translators: Pregunta de confirmación antes de reiniciar el equipo para entrar a UEFI.
+				pregunta = _("¿Seguro que deseas reiniciar el equipo ahora mismo para acceder a la BIOS / UEFI? Los programas abiertos se cerrarán sin guardar cambios pendientes.")
+				# Translators: Título del diálogo de confirmación para reiniciar a UEFI.
+				titulo = _("Reiniciar a UEFI - Gestor de BIOS")
+				if gui.messageBox(pregunta, titulo, wx.YES_NO | wx.ICON_QUESTION) == wx.YES:
+					ok, msg = self.backend.reboot_to_uefi()
+					if not ok:
+						ui.message(msg)
+			except Exception as e:
+				log.error(f"BIOS Manager: Error en confirmación de reinicio: {e}", exc_info=True)
 					
 		wx.CallAfter(prompt_and_reboot)

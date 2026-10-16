@@ -56,7 +56,7 @@ hr {
 <h1>BIOS and UEFI Manager for NVDA</h1>
 <ul>
 <li>Author: Daliana</li>
-<li>Version: 1.9</li>
+<li>Version: 1.10.4</li>
 <li>Compatibility: NVDA 2023.1 and later</li>
 <li>License: GNU GPL v2</li>
 </ul>
@@ -97,6 +97,16 @@ hr {
 </ul>
 <h3>Custom Shortcut Assignment</h3>
 <p>Assign your preferred keyboard shortcuts under NVDA Menu &gt; Preferences &gt; Input Gestures, in the "BIOS and UEFI Manager" category.</p>
+
+<h3>Saving Safely</h3>
+<ul>
+<li>Before saving, the add-on summarizes pending settings and asks for an additional confirmation.</li>
+<li>Secure Boot, TPM, physical-presence settings, and the BIOS password are blocked by design and are read-only when exposed by firmware.</li>
+<li>Boot order remains available, but an incorrect order can prevent the computer from starting. Review it carefully before confirming.</li>
+<li>A supervisor password is used only while saving. It is not stored by NVDA or written to its log.</li>
+<li>A temporary snapshot is prepared before saving and removed after the operation, including when firmware rejects a change.</li>
+<li>Reboot to UEFI gives Windows 30 seconds to save work or cancel with <code>shutdown /a</code>; applications are not forced closed immediately.</li>
+</ul>
 <h3>Keyboard Shortcuts inside the Settings Window</h3>
 <ul>
 <li>Search: Type the search term and press Enter or the Filter button. Press Clear to reset.</li>
@@ -105,6 +115,29 @@ hr {
 <li>BIOS Supervisor Password: if your machine has a BIOS administrator password set, type it into the password field before pressing OK; if you don't have one, leave it blank. The password is never saved anywhere — it's only used while the window is open.</li>
 </ul>
 <hr />
+<h2>What's new in 1.10.4</h2>
+<ul>
+<li>Critical PowerShell backend execution fix that prevented settings from being read on Windows 11 due to disconnected output redirection.</li>
+<li>Substantial speedup reading Lenovo WMI options (GetBiosSelections), halving load time.</li>
+<li>Robust collection and JSON serialization handling for empty, single-item, and multi-item setting lists.</li>
+<li>Automatic deduplication of BIOS settings reported by the firmware.</li>
+<li>Modern wxWidgets 4.2+ compatibility (NVDA 2024+) using dynamically generated control IDs in submenus.</li>
+<li>Support for opening the editor by pressing Enter on the BIOS settings list.</li>
+<li>Full compatibility guaranteed on both Windows 10 and Windows 11.</li>
+</ul>
+<h2>What's new in 1.10.3</h2>
+<ul>
+<li>Maintenance and stability improvements (no behavior changes).</li>
+</ul>
+<h2>What's new in 1.10.2</h2>
+<ul>
+<li>Maintenance and stability improvements (no behavior changes).</li>
+</ul>
+<h2>What's new in 1.10.1</h2>
+<ul>
+<li>Hardened date and time setting from the graphical interface.</li>
+<li>Rigorous filtering of malformed WMI responses.</li>
+</ul>
 <h2>What's new in 1.10.0 (18 September 2026)</h2>
 <ul>
 <li>BIOS supervisor password support: machines with a firmware administrative password now feature a dedicated password field in the settings dialog. The add-on detects the appropriate communication method for your hardware automatically, handling the password exclusively in temporary memory.</li>

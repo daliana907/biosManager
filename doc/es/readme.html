@@ -10,6 +10,7 @@
 
 <ul>
 <li>Autor: Daliana</li>
+<li>Versión: 1.10.4</li>
 <li>Compatibilidad con NVDA: 2023.1 en adelante</li>
 <li>Descarga de la versión estable: https://github.com/daliana907/biosManager</li>
 </ul>
@@ -17,7 +18,7 @@
 <p>Este complemento te permite ajustar las configuraciones internas de la placa base (BIOS/UEFI) de tu computadora portátil directamente desde Windows usando el lector de pantalla NVDA, sin tener que navegar por menús visuales inaccesibles durante el arranque del equipo.</p>
 <p>La configuración de la BIOS históricamente ha sido una de las barreras de accesibilidad más grandes, ya que la pantalla de arranque del equipo no carga ningún sistema de audio o lector de pantalla. Bios Manager derriba esta barrera conectándose a la interfaz de administración interna de Windows.</p>
 <p>Con esta herramienta podrás:</p>
-<li>  Modificar opciones de hardware: Cambiar el comportamiento de los puertos USB, las teclas de función, los pitidos de arranque o las opciones de virtualización y seguridad.</li>
+<li>  Modificar opciones de hardware: Cambiar el comportamiento de los puertos USB, las teclas de función, los pitidos de arranque o las opciones de virtualización. Secure Boot, TPM, presencia física y contraseña de BIOS están bloqueados por seguridad.</li>
 <li>  Editar fechas y horas: Ajustar de manera accesible y segura el reloj interno de la placa base, con protecciones para evitar ingresar fechas no válidas.</li>
 <li>  Alterar el orden de arranque: Ver y cambiar en qué orden el equipo intenta arrancar el sistema operativo (muy útil si necesitas arrancar desde un pendrive o lectora de CD/DVD).</li>
 <li>  Supervisión segura: El complemento filtra respuestas deformadas del sistema, realiza verificaciones en segundo plano y te avisa si el equipo soporta o rechaza los comandos, garantizando que tu placa base no sufra daños por interrupciones.</li>
@@ -25,6 +26,15 @@
 <p>Puedes acceder a sus funciones directamente desde el menú de herramientas de NVDA, buscando la opción BIOS Manager.</p>
 <p>Al abrirlo, la ventana cargará todas las configuraciones disponibles en una lista filtrable y buscable. Al pulsar Enter sobre cualquier opción, se abrirá un menú desplegable, un cuadro de texto numérico o una ventana especial (por ejemplo, para el orden de arranque) dependiendo del tipo de ajuste seleccionado.</p>
 <p>Cualquier cambio que realices se guardará primero en una lista de "cambios pendientes". Recién cuando estés seguro y presiones el botón de guardar, el complemento requerirá elevación de permisos (permisos de administrador) para inyectar tus modificaciones directamente en la placa base.</p>
+
+<h2>Seguridad al guardar</h2>
+<ul>
+<li>Antes de guardar se resume la lista de cambios y se pide una confirmación adicional.</li>
+<li>El orden de arranque puede impedir que el equipo inicie si se configura mal; revísalo antes de aceptar.</li>
+<li>La contraseña de supervisor solo se usa durante el guardado y no se guarda en NVDA ni en el registro.</li>
+<li>Se prepara una copia temporal antes de guardar y se elimina al terminar, incluso si el firmware rechaza un cambio.</li>
+<li>Reiniciar en UEFI deja 30 segundos para guardar el trabajo o cancelar con <code>shutdown /a</code>; no fuerza el cierre inmediato de los programas.</li>
+</ul>
 <h2>Compatibilidad de hardware</h2>
 <p>Debido a que el acceso a la BIOS varía enormemente entre fabricantes, este complemento está diseñado específicamente para computadoras de marca Lenovo (línea ThinkPad y algunos modelos IdeaPad/Legion) que exponen sus métodos WMI (Windows Management Instrumentation) en el espacio de nombres de Windows. Las funciones de reiniciar en UEFI sí son compatibles con todas las marcas.</p>
 
