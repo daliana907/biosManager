@@ -1,7 +1,7 @@
 # BIOS Manager
 
 * Autor: Daliana
-* Versión: 1.10.4
+* Versión: 1.11.0
 * Compatibilidad con NVDA: 2023.1 en adelante
 * Descarga de la versión estable: https://github.com/daliana907/biosManager
 
@@ -15,6 +15,13 @@ Con esta herramienta podrás:
 *   Editar fechas y horas: Ajustar de manera accesible y segura el reloj interno de la placa base, con protecciones para evitar ingresar fechas no válidas.
 *   Alterar el orden de arranque: Ver y cambiar en qué orden el equipo intenta arrancar el sistema operativo (muy útil si necesitas arrancar desde un pendrive o lectora de CD/DVD).
 *   Supervisión segura: El complemento filtra respuestas deformadas del sistema, realiza verificaciones en segundo plano y te avisa si el equipo soporta o rechaza los comandos, garantizando que tu placa base no sufra daños por interrupciones.
+
+## Novedades en la versión 1.11.0
+
+*   Ajustes delicados bloqueados por diseño, con confirmación previa antes de guardar.
+*   Respaldo previo del estado y limpieza de temporales al terminar.
+*   Reinicio a UEFI con 30 segundos para guardar o cancelar.
+*   Contraseña protegida y ventana sin congelamientos.
 
 ## Cómo usarlo
 

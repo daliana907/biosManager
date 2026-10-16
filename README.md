@@ -1,7 +1,7 @@
 # BIOS Manager
 
 * Autor: Daliana
-* Versión: 1.10.4
+* Versión: 1.11.0
 * Compatibilidad con NVDA: 2023.1 en adelante
 * Descarga de la versión estable: https://github.com/daliana907/biosManager
 

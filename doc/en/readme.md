@@ -1,7 +1,7 @@
 # BIOS and UEFI Manager for NVDA
 
 - Author: Daliana
-- Version: 1.10.4
+- Version: 1.11.0
 - Compatibility: NVDA 2023.1 and later
 - License: GNU GPL v2
 
@@ -71,6 +71,13 @@ Assign your preferred keyboard shortcuts under NVDA Menu > Preferences > Input G
 - BIOS Supervisor Password: if your machine has a BIOS administrator password set, type it into the password field before pressing OK; if you don't have one, leave it blank. The password is never saved anywhere — it's only used while the window is open.
 
 ---
+
+## What's new in 1.11.0
+
+- Sensitive settings blocked by design, with confirmation before saving.
+- Prior state snapshot and temp cleanup when done.
+- UEFI reboot with 30 seconds to save or cancel.
+- Protected password and freeze-free window.
 
 ## What's new in 1.10.4
 
