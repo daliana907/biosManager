@@ -362,6 +362,7 @@ class DeserializacionDeAjustes(unittest.TestCase):
 
     def test_un_solo_ajuste_en_formato_dict_se_convierte_en_lista_correctamente(self):
         backend = Motor()
+        backend._obtenerFabricante = lambda: "LENOVO"
         backend._ejecutarPowerShellElevado = lambda *a, **k: (
             True,
             '{"Name": "SecureBoot", "Value": "Enable", "Options": "Enable,Disable"}'
@@ -373,6 +374,7 @@ class DeserializacionDeAjustes(unittest.TestCase):
 
     def test_deduplicacion_de_ajustes_con_mismo_nombre(self):
         backend = Motor()
+        backend._obtenerFabricante = lambda: "LENOVO"
         backend._ejecutarPowerShellElevado = lambda *a, **k: (
             True,
             '[{"Name": "SecureBoot", "Value": "Enable", "Options": "Enable,Disable"},'

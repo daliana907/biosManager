@@ -240,7 +240,8 @@ class TestEstresCaosBiosManager(unittest.TestCase):
             {"Name": "SettingStr", "Value": "A", "Options": "A, B"},
             {"Name": "SettingNone", "Value": "X", "Options": None},
         ])
-        with patch.object(self.backend, "_ejecutarPowerShellElevado", return_value=(True, mock_json)):
+        with patch.object(self.backend, "_obtenerFabricante", return_value="LENOVO"), \
+             patch.object(self.backend, "_ejecutarPowerShellElevado", return_value=(True, mock_json)):
             settings = self.backend.get_all_settings()
             self.assertEqual(len(settings), 3)
             self.assertEqual(settings[0]["options"], ["Opt1", "Opt2"])
